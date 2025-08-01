@@ -1,0 +1,75 @@
+{
+  "short_name": "GeoPressCI",
+  "name": "GeoPressCI - Pressing à Domicile",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3B82F6",
+  "background_color": "#ffffff",
+  "description": "Service de pressing à domicile en Côte d'Ivoire",
+  "categories": ["lifestyle", "utilities"],
+  "lang": "fr",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Interface mobile GeoPressCI"
+    },
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Interface desktop GeoPressCI"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nouvelle commande",
+      "short_name": "Commander",
+      "description": "Créer une nouvelle commande de pressing",
+      "url": "/order",
+      "icons": [
+        {
+          "src": "icon-order.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Mes commandes",
+      "short_name": "Commandes",
+      "description": "Voir l'historique de mes commandes",
+      "url": "/orders",
+      "icons": [
+        {
+          "src": "icon-history.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
