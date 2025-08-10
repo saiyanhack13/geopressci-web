@@ -1,0 +1,39 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="24" fill="#3B82F6"/>
+  
+  <!-- Washing machine body -->
+  <rect x="36" y="48" width="120" height="96" rx="12" fill="white"/>
+  
+  <!-- Main drum -->
+  <circle cx="96" cy="96" r="30" fill="none" stroke="#3B82F6" stroke-width="4"/>
+  <circle cx="96" cy="96" r="20" fill="none" stroke="#3B82F6" stroke-width="2"/>
+  <circle cx="96" cy="96" r="12" fill="none" stroke="#3B82F6" stroke-width="1"/>
+  
+  <!-- Control panel -->
+  <rect x="48" y="60" width="96" height="12" rx="6" fill="#E5E7EB"/>
+  
+  <!-- Control buttons -->
+  <circle cx="60" cy="66" r="3" fill="#3B82F6"/>
+  <circle cx="72" cy="66" r="3" fill="#10B981"/>
+  <circle cx="84" cy="66" r="3" fill="#F59E0B"/>
+  <circle cx="96" cy="66" r="3" fill="#EF4444"/>
+  
+  <!-- Display -->
+  <rect x="108" y="60" width="36" height="12" rx="3" fill="#1F2937"/>
+  <rect x="112" y="63" width="28" height="6" rx="1" fill="#10B981"/>
+  
+  <!-- Letter G in center -->
+  <text x="96" y="108" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#3B82F6">G</text>
+  
+  <!-- Location pin -->
+  <path d="M150 24 L162 24 L156 36 Z" fill="#EF4444"/>
+  <circle cx="156" cy="18" r="6" fill="#EF4444"/>
+  <circle cx="156" cy="18" r="3" fill="white"/>
+  
+  <!-- Bubbles for cleaning effect -->
+  <circle cx="66" cy="84" r="2" fill="#60A5FA" opacity="0.7"/>
+  <circle cx="78" cy="108" r="1.5" fill="#60A5FA" opacity="0.7"/>
+  <circle cx="126" cy="78" r="2.5" fill="#60A5FA" opacity="0.7"/>
+  <circle cx="114" cy="114" r="1" fill="#60A5FA" opacity="0.7"/>
+</svg>
