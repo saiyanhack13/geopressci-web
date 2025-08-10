@@ -1,8 +1,12 @@
-// Déclarations de types pour Leaflet - Configuration permissive
-declare module 'leaflet' {
-  const leaflet: any;
-  export = leaflet;
-  export as namespace L;
+/// <reference types="leaflet" />
+
+// Déclarations de types pour Leaflet - Configuration compatible
+import * as L from 'leaflet';
+
+declare global {
+  namespace L {
+    // Ensure L namespace is available globally
+  }
 }
 
 declare module 'leaflet-routing-machine' {
