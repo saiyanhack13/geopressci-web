@@ -65,7 +65,7 @@ const ManualLocationSelector: React.FC<ManualLocationSelectorProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
 
   // Token Mapbox
-  const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+  const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
 
   // Fonction pour détecter le quartier à partir des coordonnées
   const detectDistrict = (lat: number, lng: number): string => {

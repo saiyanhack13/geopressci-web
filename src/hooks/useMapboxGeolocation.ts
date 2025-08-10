@@ -45,7 +45,7 @@ const DEFAULT_OPTIONS: Required<UseMapboxGeolocationOptions> = {
 };
 
 // Récupérer le token Mapbox depuis les variables d'environnement
-const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
 
 export const useMapboxGeolocation = (
   options: UseMapboxGeolocationOptions = {}

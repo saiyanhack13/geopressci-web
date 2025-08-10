@@ -3,7 +3,7 @@
 // Remplace complètement Google Maps par des alternatives plus précises pour l'Afrique
 
 // Configuration Mapbox
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
 
 // Coordonnées par défaut d'Abidjan
 export const ABIDJAN_COORDINATES = {

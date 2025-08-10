@@ -330,7 +330,7 @@ const PressingPage: React.FC = () => {
       const [userLat, userLng] = state.userPosition;
       const { coordinates } = pressing.location;
       // Utiliser Mapbox pour les directions (plus précis pour l'Afrique)
-      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${coordinates[0]},${coordinates[1]}?geometries=geojson&access_token=${process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ'}`;
+      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${coordinates[0]},${coordinates[1]}?geometries=geojson&access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ`;
       // Fallback vers OpenStreetMap si Mapbox n'est pas disponible
       const fallbackUrl = `https://www.openstreetmap.org/directions?from=${userLat},${userLng}&to=${coordinates[1]},${coordinates[0]}&route=foot#map=15/${coordinates[1]}/${coordinates[0]}`;
       

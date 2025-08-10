@@ -220,7 +220,7 @@ const OrderDetailPage: React.FC = () => {
     if (order?.deliveryLocation) {
       const { latitude, longitude } = order.deliveryLocation;
       // Utiliser Mapbox pour l'affichage de carte (plus précis pour l'Afrique)
-      const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+ff0000(${longitude},${latitude})/${longitude},${latitude},15/600x400@2x?access_token=${process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ'}`;
+      const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+ff0000(${longitude},${latitude})/${longitude},${latitude},15/600x400@2x?access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ`;
       // Fallback vers OpenStreetMap
       const fallbackUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=15#map=15/${latitude}/${longitude}`;
       window.open(mapUrl, '_blank');
@@ -228,7 +228,7 @@ const OrderDetailPage: React.FC = () => {
       // Utiliser OpenStreetMap pour la recherche d'adresse (plus fiable que Google pour l'Afrique)
       const mapUrl = `https://www.openstreetmap.org/search?query=${encodeURIComponent(order.adresseLivraison)}#map=15/5.36/-4.01`;
       // Alternative Mapbox pour géocodage
-      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(order.adresseLivraison)}.json?access_token=${process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ'}&country=ci&proximity=-4.01,5.36`;
+      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(order.adresseLivraison)}.json?access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ&country=ci&proximity=-4.01,5.36`;
       window.open(mapUrl, '_blank');
     }
   }, [order]);
@@ -240,7 +240,7 @@ const OrderDetailPage: React.FC = () => {
       // Utiliser OpenStreetMap pour les directions (gratuit et précis)
       const directionsUrl = `https://www.openstreetmap.org/directions?to=${latitude},${longitude}#map=15/${latitude}/${longitude}`;
       // Alternative Mapbox pour directions
-      const mapboxDirectionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/-4.01,5.36;${longitude},${latitude}?geometries=geojson&access_token=${process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ'}`;
+      const mapboxDirectionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/-4.01,5.36;${longitude},${latitude}?geometries=geojson&access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ`;
       window.open(directionsUrl, '_blank');
     }
   }, [order]);

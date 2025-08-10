@@ -45,8 +45,8 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isMapboxLoaded, setIsMapboxLoaded] = useState(false);
 
-  // Token Mapbox depuis les variables d'environnement
-  const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+  // Token Mapbox hardcodé pour éviter les problèmes de variables d'environnement
+  const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
 
   // Charger Mapbox GL JS
   useEffect(() => {
