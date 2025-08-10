@@ -147,7 +147,7 @@ const OrderDetailManagementPage: React.FC = () => {
       const osmUrl = `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}#map=15/5.36/-4.01`;
       
       // Alternative Mapbox pour géocodage plus précis
-      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ&country=ci&proximity=-4.01,5.36`;
+      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWU1eXZhOGoweWJ4MmpzY2Z5cmNxZ2N5In0.ju34YgThquClMpMP-HQwyA&country=ci&proximity=-4.01,5.36`;
       
       try {
         // Essayer d'abord OpenStreetMap (plus fiable)

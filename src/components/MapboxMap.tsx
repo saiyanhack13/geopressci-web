@@ -46,7 +46,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   const [isMapboxLoaded, setIsMapboxLoaded] = useState(false);
 
   // Token Mapbox hardcodé pour éviter les problèmes de variables d'environnement
-  const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWUzOTVnc2wwNTVsMmxzZTF1Zm13ZWVjIn0.o48XqkHK-s4jF4qLzLKRQ';
+  const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZG9sa28xMyIsImEiOiJjbWU1eXZhOGoweWJ4MmpzY2Z5cmNxZ2N5In0.ju34YgThquClMpMP-HQwyA';
 
   // Charger Mapbox GL JS
   useEffect(() => {
