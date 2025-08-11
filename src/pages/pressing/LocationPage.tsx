@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { MapPin, Target, Navigation2, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { MapPin, Target, Navigation2, CheckCircle, XCircle, Satellite, Loader, Crosshair } from 'lucide-react';
 import { 
   useGetPressingProfileQuery,
   useUpdatePressingProfileMutation
@@ -9,6 +9,10 @@ import PressingLayout from '../../components/pressing/PressingLayout';
 import MapboxMap from '../../components/MapboxMap';
 import AddressLocationManager from '../../components/pressing/AddressLocationManager';
 import ManualLocationSelector from '../../components/geolocation/ManualLocationSelector';
+
+// Import des composants de géolocalisation Mapbox
+import MapboxGeolocationButton from '../../components/geolocation/MapboxGeolocationButton';
+import { MapboxGeolocationPosition } from '../../hooks/useMapboxGeolocation';
 
 // Types pour les coordonnées
 interface AddressData {
@@ -31,6 +35,9 @@ export const LocationPage: React.FC = () => {
   // États locaux pour la sélection manuelle de position
   const [showManualSelector, setShowManualSelector] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // États pour la géolocalisation
+  const [geolocationStatus, setGeolocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   
   // Coordonnées par défaut d'Abidjan
   const defaultCoordinates = { lat: 5.3364, lng: -4.0267 };
@@ -123,23 +130,93 @@ export const LocationPage: React.FC = () => {
           district: addressToSave.district,
           postalCode: addressToSave.postalCode,
           country: addressToSave.country,
-          coordinates: addressToSave.coordinates
+          coordinates: {
+            lat: addressToSave.coordinates.lat,
+            lng: addressToSave.coordinates.lng
+          }
         }
       }).unwrap();
       
+      toast.success('✅ Adresse mise à jour avec succès');
       setHasUnsavedChanges(false);
-      toast.success('📍 Adresse et position mises à jour avec succès !', {
-        duration: 4000
-      });
-      
-      // Rafraîchir les données
       refetch();
-      
     } catch (error: any) {
-      console.error('Erreur sauvegarde adresse:', error);
-      toast.error('Erreur lors de la sauvegarde : ' + (error?.data?.message || 'Erreur inconnue'));
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('❌ Erreur lors de la sauvegarde de l\'adresse');
     }
   };
+
+  // Fonction pour détecter le quartier depuis les coordonnées
+  const getNeighborhoodFromCoordinates = useCallback((lat: number, lng: number): string => {
+    const neighborhoods = [
+      { name: 'Cocody', bounds: { north: 5.37, south: 5.32, east: -3.95, west: -4.02 } },
+      { name: 'Plateau', bounds: { north: 5.33, south: 5.31, east: -4.00, west: -4.02 } },
+      { name: 'Yopougon', bounds: { north: 5.36, south: 5.32, east: -4.08, west: -4.12 } },
+      { name: 'Marcory', bounds: { north: 5.31, south: 5.28, east: -3.99, west: -4.02 } },
+      { name: 'Treichville', bounds: { north: 5.31, south: 5.28, east: -4.00, west: -4.03 } },
+      { name: 'Adjamé', bounds: { north: 5.37, south: 5.34, east: -4.02, west: -4.05 } }
+    ];
+    
+    for (const neighborhood of neighborhoods) {
+      const { bounds } = neighborhood;
+      if (lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east) {
+        return neighborhood.name;
+      }
+    }
+    return 'Autre';
+  }, []);
+
+  // Gestionnaire de réception de position Mapbox
+  const handleLocationReceived = useCallback((position: MapboxGeolocationPosition) => {
+    const { latitude, longitude, accuracy, source } = position;
+    
+    // Créer la nouvelle adresse avec les coordonnées détectées
+    const detectedNeighborhood = getNeighborhoodFromCoordinates(latitude, longitude);
+    const updatedAddress: AddressData = {
+      ...currentAddress,
+      coordinates: {
+        lat: latitude,
+        lng: longitude
+      },
+      district: detectedNeighborhood !== 'Autre' ? detectedNeighborhood : currentAddress.district
+    };
+    
+    setGeolocationStatus('success');
+    
+    // Sauvegarder automatiquement la nouvelle position
+    handleSaveAddress(updatedAddress);
+    
+    // Toast de succès avec informations détaillées
+    const sourceText = source === 'native' ? 'GPS natif' : source === 'mapbox' ? 'Mapbox' : 'IP';
+    const precisionText = accuracy <= 100 ? 'Précise' : 'Approximative';
+    
+    toast.success(
+      `📍 Position détectée via ${sourceText} • ${precisionText} (±${Math.round(accuracy)}m)${detectedNeighborhood !== 'Autre' ? ` • ${detectedNeighborhood}` : ''}`,
+      {
+        duration: 4000,
+        id: 'geolocation-success'
+      }
+    );
+  }, [currentAddress, handleSaveAddress, getNeighborhoodFromCoordinates]);
+
+  // Gestionnaire d'erreur de géolocalisation
+  const handleLocationError = useCallback((error: any) => {
+    setGeolocationStatus('error');
+    
+    switch (error.code) {
+      case 1: // PERMISSION_DENIED
+        toast.error('🚫 Autorisation de géolocalisation refusée.', { id: 'geolocation-error' });
+        break;
+      case 2: // POSITION_UNAVAILABLE
+        toast.error('📡 Position indisponible. Vérifiez votre connexion GPS.', { id: 'geolocation-error' });
+        break;
+      case 3: // TIMEOUT
+        toast.error('⏱️ Délai d\'attente dépassé. Réessayez.', { id: 'geolocation-error' });
+        break;
+      default:
+        toast.error('❌ Erreur de géolocalisation. Utilisez la sélection manuelle.', { id: 'geolocation-error' });
+    }
+  }, []);
 
   // Vérifier si les coordonnées sont valides (dans la zone d'Abidjan)
   const hasValidCoordinates = useMemo(() => {
@@ -228,14 +305,48 @@ export const LocationPage: React.FC = () => {
                       </p>
                     </div>
                     
-                    <button
-                      onClick={() => setShowManualSelector(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      <Target className="w-4 h-4" />
-                      Sélectionner sur carte
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {/* Bouton de géolocalisation automatique */}
+                      <MapboxGeolocationButton
+                        onLocationReceived={handleLocationReceived}
+                        onError={handleLocationError}
+                        variant="primary"
+                        size="sm"
+                        showAccuracy={true}
+                        className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        <Satellite className="w-4 h-4 mr-1" />
+                        <span className="hidden sm:inline">Détecter ma position</span>
+                      </MapboxGeolocationButton>
+                      
+                      <button
+                        onClick={() => setShowManualSelector(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        <Target className="w-4 h-4" />
+                        <span className="hidden sm:inline">Sélectionner sur carte</span>
+                      </button>
+                    </div>
                   </div>
+                  
+                  {/* Indicateur de géolocalisation */}
+                  {geolocationStatus === 'success' && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-800">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">Position GPS détectée avec succès</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {geolocationStatus === 'loading' && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-blue-800">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        <span className="text-sm font-medium">Détection de votre position en cours...</span>
+                      </div>
+                    </div>
+                  )}
                   
                   <AddressLocationManager
                     address={currentAddress}
