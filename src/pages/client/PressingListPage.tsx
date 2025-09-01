@@ -581,19 +581,12 @@ const PressingListPage: React.FC = () => {
                     <Heart className="h-4 w-4 text-gray-600 group-hover/heart:text-red-500 group-hover/heart:scale-110 transition-all duration-200" />
                   </button>
                   
-                  {/* Indicateur de statut */}
+                  {/* Indicateur de statut - Toujours ouvert */}
                   <div className="absolute bottom-3 left-3">
-                    {pressing.isOpen ? (
-                      <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        Ouvert
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        Fermé
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      Ouvert 6h-20h
+                    </div>
                   </div>
                 </div>
                 

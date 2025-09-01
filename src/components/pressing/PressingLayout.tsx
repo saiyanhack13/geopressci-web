@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import MobileNavigation from './MobileNavigation';
+
 import { cn } from '../../lib/utils';
 
 interface PressingLayoutProps {
@@ -52,8 +52,7 @@ const PressingLayout: React.FC<PressingLayoutProps> = ({
         </div>
       </main>
 
-      {/* Navigation mobile */}
-      {!hideNav && <MobileNavigation />}
+
     </div>
   );
 };

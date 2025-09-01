@@ -51,7 +51,7 @@ const MapboxMapView: React.FC<MapboxMapViewProps> = ({
         const distance = pressing.distance ? `${pressing.distance}km` : 'Distance inconnue';
         const locationMeta = (pressing as any).locationMetadata;
         const neighborhood = locationMeta?.detectedNeighborhood || 'Quartier non détecté';
-        const isOpen = pressing.isOpen ? '🟢 Ouvert' : '🔴 Fermé';
+        const isOpen = '🟢 Ouvert 6h-20h'; // Toujours ouvert
         
         // Prix moyen des services
         const avgPrice = services.length > 0 
@@ -63,7 +63,7 @@ const MapboxMapView: React.FC<MapboxMapViewProps> = ({
           lng: coords.lng,
           title: pressing.name || pressing.businessName || 'Pressing',
           info: `
-            <div class="pressing-marker-popup" style="max-width: 200px; font-size: 12px;">
+            <div class="pressing-marker-popup" style="max-width: 120px; font-size: 12px;">
               <div class="font-semibold text-sm mb-1" style="font-size: 13px;">${pressing.name || 'Pressing'}</div>
               <div class="space-y-1" style="font-size: 11px;">
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -81,7 +81,7 @@ const MapboxMapView: React.FC<MapboxMapViewProps> = ({
               <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #e5e7eb;">
                 <button 
                   onclick="window.location.href='/pressing-detail/${pressing.id}'" 
-                  style="width: 100%; padding: 6px 8px; background-color: #f97316; color: white; border-radius: 4px; border: none; font-size: 11px; font-weight: 500; cursor: pointer;"
+                  style="width: 100%; padding: 4px 6px; background-color: #f97316; color: white; border-radius: 4px; border: none; font-size: 11px; font-weight: 500; cursor: pointer;"
                 >
                   Voir détails
                 </button>

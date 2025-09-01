@@ -3,7 +3,7 @@
  */
 
 // URL de base de l'API (doit correspondre à celle définie dans votre configuration)
-const API_BASE_URL = 'https://geopressci-akcdaadk.b4a.run/';
+const API_BASE_URL = 'http://localhost:5002//';
 
 /**
  * Construit l'URL complète d'une image à partir de son chemin relatif

@@ -84,28 +84,18 @@ const PressingCard: React.FC<PressingCardProps> = ({
     return (
       <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden">
         <div onClick={onSelect}>
-          {/* Image */}
-          <div className="relative h-48 bg-gradient-to-br from-orange-400 to-orange-600">
-            {pressing.photos && pressing.photos[0] ? (
-              <img 
-                src={pressing.photos[0]} 
-                alt={pressing.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-white text-4xl">🏪</div>
-              </div>
-            )}
+          {/* Image avec icône de pressing */}
+          <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-white text-6xl">🏪</div>
+            </div>
+            {/* Overlay décoratif */}
+            <div className="absolute inset-0 bg-black/10"></div>
             
-            {/* Badge de statut */}
+            {/* Badge de statut - Toujours ouvert */}
             <div className="absolute top-3 left-3">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                pressing.isOpen 
-                  ? 'bg-green-500 text-white' 
-                  : 'bg-red-500 text-white'
-              }`}>
-                {pressing.isOpen ? '🟢 Ouvert' : '🔴 Fermé'}
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+                🟢 Ouvert 6h-20h
               </span>
             </div>
 
@@ -278,30 +268,20 @@ const PressingCard: React.FC<PressingCardProps> = ({
     <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer mb-4">
       <div onClick={onSelect} className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-          {/* Image */}
+          {/* Image avec icône de pressing */}
           <div className="relative w-full sm:w-32 h-32 sm:h-24 flex-shrink-0">
-            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg overflow-hidden">
-              {pressing.photos && pressing.photos[0] ? (
-                <img 
-                  src={pressing.photos[0]} 
-                  alt={pressing.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-white text-2xl">🏪</div>
-                </div>
-              )}
+            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg overflow-hidden">
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-white text-3xl sm:text-2xl">🏪</div>
+              </div>
+              {/* Overlay décoratif */}
+              <div className="absolute inset-0 bg-black/10 rounded-lg"></div>
             </div>
             
-            {/* Badge de statut sur l'image */}
+            {/* Badge de statut sur l'image - Toujours ouvert */}
             <div className="absolute top-2 left-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                pressing.isOpen 
-                  ? 'bg-green-500 text-white' 
-                  : 'bg-red-500 text-white'
-              }`}>
-                {pressing.isOpen ? '🟢' : '🔴'}
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+                🟢 6h-20h
               </span>
             </div>
           </div>
@@ -359,9 +339,9 @@ const PressingCard: React.FC<PressingCardProps> = ({
                 {/* Services */}
                 <div className="mb-3">
                   <div className="flex flex-wrap gap-2">
-                    {(pressing.services || []).slice(0, 3).map((service) => (
+                    {(pressing.services || []).slice(0, 3).map((service, index) => (
                       <span
-                        key={service.id}
+                        key={service._id || service.id || `service-${index}`}
                         className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full"
                       >
                         {service.name || service.nom || 'Service'} • {formatPrice(service.price || service.prix || 0)}

@@ -107,8 +107,8 @@ export const api = createApi({
         ...(result || []).map(({ _id }) => ({ type: 'Pressing' as const, id: _id })),
         'Pressing'
       ],
-      // Forcer le refetch toutes les 30 secondes pour les nouveaux pressings
-      keepUnusedDataFor: 30,
+      // Configuration du cache - 5 minutes
+      keepUnusedDataFor: 300,
     }),
 
     searchPressings: builder.query<Pressing[], { query?: string; filters?: any }>({

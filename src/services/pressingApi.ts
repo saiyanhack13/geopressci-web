@@ -360,7 +360,14 @@ export const pressingApi = createApi({
       providesTags: ['PressingServices'],
     }),
 
-    createService: builder.mutation<PressingService, Omit<PressingService, 'id'>>({
+    createService: builder.mutation<PressingService, {
+      nom: string;
+      categorie: string;
+      prix: number;
+      dureeMoyenne: number;
+      description?: string;
+      disponible?: boolean;
+    }>({
       query: (body) => ({
         url: '/pressing/services',
         method: 'POST',
@@ -487,6 +494,49 @@ export const pressingApi = createApi({
         body: { photoUrl },
       }),
       invalidatesTags: ['PressingProfile'],
+    }),
+
+    // Gallery Photos Management
+    getPressingPhotos: builder.query<PressingPhotos, string>({
+      query: (pressingId) => `/pressings/${pressingId}/photos`,
+      transformResponse: (response: { success: boolean; data: PressingPhotos }) => {
+        return response.data;
+      },
+      providesTags: ['PressingPhotos'],
+    }),
+
+    uploadGalleryPhoto: builder.mutation<PressingPhoto, FormData>({
+      query: (formData) => ({
+        url: '/pressing/gallery/upload',
+        method: 'POST',
+        body: formData,
+      }),
+      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
+        return response.data;
+      },
+      invalidatesTags: ['PressingPhotos'],
+    }),
+
+    deletePhoto: builder.mutation<{ message: string }, { pressingId: string; photoId: string }>({
+      query: ({ pressingId, photoId }) => ({
+        url: `/pressing/gallery/${photoId}`,
+        method: 'DELETE',
+      }),
+      transformResponse: (response: { success: boolean; message: string }) => {
+        return { message: response.message };
+      },
+      invalidatesTags: ['PressingPhotos'],
+    }),
+
+    setPrimaryPhoto: builder.mutation<PressingPhoto, { pressingId: string; photoId: string }>({
+      query: ({ pressingId, photoId }) => ({
+        url: `/pressing/gallery/${photoId}/primary`,
+        method: 'PUT',
+      }),
+      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
+        return response.data;
+      },
+      invalidatesTags: ['PressingPhotos'],
     }),
 
     // Business Hours Management
@@ -677,77 +727,7 @@ export const pressingApi = createApi({
       }),
     }),
 
-    // Photos Management with Cloudinary
-    getPressingPhotos: builder.query<PressingPhotos, void>({
-      query: () => '/pressing/management/photos',
-      transformResponse: (response: { success: boolean; data: PressingPhotos }) => {
-        return response.data;
-      },
-      providesTags: ['PressingPhotos'],
-    }),
 
-    // Gallery Photos
-    uploadGalleryPhoto: builder.mutation<PressingPhoto, { formData: FormData }>({
-      query: ({ formData }) => ({
-        url: '/pressing/management/photos/gallery',
-        method: 'POST',
-        body: formData,
-      }),
-      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
-        return response.data;
-      },
-      invalidatesTags: ['PressingPhotos', 'PressingProfile'],
-    }),
-
-    // Profile Photo
-    uploadProfilePhoto: builder.mutation<PressingPhoto, { formData: FormData }>({
-      query: ({ formData }) => ({
-        url: '/pressing/management/photos/profile',
-        method: 'POST',
-        body: formData,
-      }),
-      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
-        return response.data;
-      },
-      invalidatesTags: ['PressingPhotos', 'PressingProfile'],
-    }),
-
-    // Cover Photo
-    uploadCoverPhoto: builder.mutation<PressingPhoto, { formData: FormData }>({
-      query: ({ formData }) => ({
-        url: '/pressing/management/photos/cover',
-        method: 'POST',
-        body: formData,
-      }),
-      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
-        return response.data;
-      },
-      invalidatesTags: ['PressingPhotos', 'PressingProfile'],
-    }),
-
-    // Delete Photo
-    deletePhoto: builder.mutation<{ message: string }, string>({
-      query: (photoId) => ({
-        url: `/pressing/management/photos/${photoId}`,
-        method: 'DELETE',
-      }),
-      transformResponse: (response: { success: boolean; message: string }) => {
-        return { message: response.message };
-      },
-      invalidatesTags: ['PressingPhotos', 'PressingProfile'],
-    }),
-
-    // Set Primary Photo
-    setPrimaryPhoto: builder.mutation<PressingPhoto, string>({
-      query: (photoId) => ({
-        url: `/pressing/management/photos/${photoId}/primary`,
-        method: 'PATCH',
-      }),
-      transformResponse: (response: { success: boolean; data: PressingPhoto }) => {
-        return response.data;
-      },
-      invalidatesTags: ['PressingPhotos', 'PressingProfile'],
-    }),
 
     uploadPhotoFile: builder.mutation<PressingPhoto, {
       file: File;
@@ -1019,8 +999,6 @@ export const {
   // Photos Management (Cloudinary)
   useGetPressingPhotosQuery,
   useUploadGalleryPhotoMutation,
-  useUploadProfilePhotoMutation,
-  useUploadCoverPhotoMutation,
   useDeletePhotoMutation,
   useSetPrimaryPhotoMutation,
   

@@ -27,7 +27,7 @@ class NotificationService {
   private baseUrl: string;
   
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || 'https://geopressci-akcdaadk.b4a.run//api/v1';
+    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5002/api/v1';
   }
 
   /**

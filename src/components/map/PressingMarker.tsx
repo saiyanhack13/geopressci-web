@@ -27,7 +27,7 @@ const PressingMarker: React.FC<PressingMarkerProps> = ({ pressing, position, isU
         {pressing.address}<br />
         <strong>Services:</strong> {pressing.services.join(', ')}<br />
         <strong>Note:</strong> {pressing.rating} / 5<br />
-        <button onClick={onClick} style={{ marginTop: '5px', cursor: 'pointer' }}>Voir l'itinéraire</button>
+        <button onClick={onClick} style={{ marginTop: '3px', cursor: 'pointer' }}>Voir l'itinéraire</button>
       </Popup>
     </Marker>
   );

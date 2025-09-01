@@ -1,5 +1,5 @@
 import React from 'react';
-import MobileNavigation from '../pressing/MobileNavigation';
+
 
 interface PressingLayoutProps {
   children: React.ReactNode;
@@ -44,8 +44,7 @@ const PressingLayout: React.FC<PressingLayoutProps> = ({ children }) => {
         </main>
       </div>
       
-      {/* Menu Mobile - Visible uniquement sur petits écrans */}
-      <MobileNavigation />
+
     </div>
   );
 };

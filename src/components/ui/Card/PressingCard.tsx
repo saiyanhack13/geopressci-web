@@ -66,17 +66,10 @@ const PressingCard: React.FC<PressingCardProps> = ({
           className="w-full h-48 object-cover" 
         />
         <div className="absolute top-2 right-2">
-          {pressing.isOpen ? (
-            <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-              Ouvert
-            </span>
-          ) : (
-            <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-              <XCircle className="w-3 h-3" />
-              Fermé
-            </span>
-          )}
+          <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            Ouvert 6h-20h
+          </span>
         </div>
         <div className="absolute top-2 left-2">
           <span className={`bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium ${priceDisplay.color}`}>
@@ -138,15 +131,13 @@ const PressingCard: React.FC<PressingCardProps> = ({
             Voir détails
             <ArrowRight className="w-4 h-4" />
           </Button>
-          {pressing.isOpen && (
-            <Button 
-              onClick={onGetDirections || (() => navigate(`/client/pressing/${pressing.id}`))}
-              variant="outline"
-              className="px-4 border-blue-600 text-blue-600 hover:bg-blue-50"
-            >
-              {onGetDirections ? 'Itinéraire' : '⚡ Commander'}
-            </Button>
-          )}
+          <Button 
+            onClick={onGetDirections || (() => navigate(`/client/pressing/${pressing.id}`))}
+            variant="outline"
+            className="px-4 border-blue-600 text-blue-600 hover:bg-blue-50"
+          >
+            {onGetDirections ? 'Itinéraire' : '⚡ Commander'}
+          </Button>
           {onToggleFavorite && (
             <Button 
               onClick={onToggleFavorite}

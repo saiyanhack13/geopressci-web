@@ -474,7 +474,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <h5 className="font-medium text-gray-800 mb-2">ℹ️ Informations pratiques</h5>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Collecte gratuite à domicile dans tout Abidjan</li>
+          <li>• Collecte à domicile (500 XOF) dans tout Abidjan</li>
           <li>• Soyez présent 15 minutes avant l'heure prévue</li>
           <li>• Possibilité de reprogrammer jusqu'à 2h avant</li>
           <li>• Service express disponible (supplément de 1000 FCFA)</li>

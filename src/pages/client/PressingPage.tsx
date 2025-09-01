@@ -139,7 +139,8 @@ const ABIDJAN_NEIGHBORHOODS = [
 
 // Transformation des données API vers ExtendedPressing
 const transformPressingData = (pressing: any): ExtendedPressing => ({
-  id: pressing.id || '1',
+  id: pressing._id || pressing.id || `pressing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  _id: pressing._id || pressing.id,
   nom: pressing.nom || 'Pressing',
   prenom: pressing.prenom || 'Propriétaire',
   email: pressing.email || 'contact@pressing.ci',
@@ -148,14 +149,14 @@ const transformPressingData = (pressing: any): ExtendedPressing => ({
   businessInfo: pressing.businessInfo || {},
   role: 'pressing',
   services: pressing.services || [],
-  openingHours: pressing.horaires || [
-    { day: 'monday', open: '08:00', close: '18:00' },
-    { day: 'tuesday', open: '08:00', close: '18:00' },
-    { day: 'wednesday', open: '08:00', close: '18:00' },
-    { day: 'thursday', open: '08:00', close: '18:00' },
-    { day: 'friday', open: '08:00', close: '18:00' },
-    { day: 'saturday', open: '08:00', close: '16:00' },
-    { day: 'sunday', open: '00:00', close: '00:00' }
+  openingHours: [
+    { day: 'monday', open: '06:00', close: '20:00' },
+    { day: 'tuesday', open: '06:00', close: '20:00' },
+    { day: 'wednesday', open: '06:00', close: '20:00' },
+    { day: 'thursday', open: '06:00', close: '20:00' },
+    { day: 'friday', open: '06:00', close: '20:00' },
+    { day: 'saturday', open: '06:00', close: '20:00' },
+    { day: 'sunday', open: '06:00', close: '20:00' }
   ],
   rating: pressing.note || 4.5,
   photos: pressing.photos || [],
@@ -172,7 +173,7 @@ const transformPressingData = (pressing: any): ExtendedPressing => ({
   priceRange: pressing.priceRange || 'medium',
   deliveryTime: pressing.deliveryTime || '24h',
   distance: 0,
-  isOpen: pressing.isOpen || true,
+  isOpen: true, // Toujours ouvert de 6h à 20h
   location: { 
     coordinates: pressing.adresse?.localisation?.coordinates || [5.3599, -3.9826],
     type: 'Point'
@@ -269,10 +270,27 @@ const PressingPage: React.FC = () => {
       const result = await getNearbyPressings(params).unwrap();
       const backendPressings = result || [];
       
+      // Debug: Log des données reçues de l'API
+      console.log('🔍 Données brutes de l\'API:', backendPressings);
+      backendPressings.forEach((pressing: any, index: number) => {
+        console.log(`🏪 Pressing ${index}:`, {
+          _id: pressing._id,
+          id: pressing.id,
+          businessName: pressing.businessName || pressing.nomCommerce,
+          nom: pressing.nom
+        });
+      });
+      
       // Transformation des données backend vers ExtendedPressing
-      const transformedPressings: ExtendedPressing[] = backendPressings.map((pressing: any) => 
-        transformPressingData(pressing)
-      );
+      const transformedPressings: ExtendedPressing[] = backendPressings.map((pressing: any) => {
+        const transformed = transformPressingData(pressing);
+        console.log(`✨ Transformé ${pressing.businessName || pressing.nom}:`, {
+          originalId: pressing._id || pressing.id,
+          transformedId: transformed.id,
+          transformed_id: transformed._id
+        });
+        return transformed;
+      });
       
       dispatch({ type: 'SET_RESULTS', payload: transformedPressings });
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -322,7 +340,23 @@ const PressingPage: React.FC = () => {
   }, []);
 
   const handlePressingSelect = useCallback((pressing: ExtendedPressing) => {
-    navigate(`/pressing-detail/${pressing.id}`);
+    // Utiliser l'ID MongoDB (_id) ou l'ID standard selon ce qui est disponible
+    const pressingId = pressing._id || pressing.id;
+    
+    console.log('👆 Clic sur pressing:', {
+      businessName: pressing.businessName,
+      pressing_id: pressing._id,
+      pressing_id_standard: pressing.id,
+      pressingId_final: pressingId,
+      url_finale: `/pressing-detail/${pressingId}`
+    });
+    
+    if (pressingId) {
+      navigate(`/pressing-detail/${pressingId}`);
+    } else {
+      console.error('❌ Aucun ID disponible pour:', pressing);
+      toast.error('ID du pressing non disponible');
+    }
   }, [navigate]);
 
   const handleGetDirections = useCallback((pressing: ExtendedPressing) => {

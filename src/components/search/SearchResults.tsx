@@ -76,7 +76,7 @@ const convertToPressingCardData = (pressing: ExtendedPressing): PressingCardData
       country: 'Côte d\'Ivoire',
       isDefault: true
     }],
-    isOpen: pressing.isOpen || false,
+    isOpen: true, // Toujours ouvert 6h-20h
     deliveryTime: pressing.estimatedDeliveryTime || '24-48h',
     image: pressing.photos && pressing.photos.length > 0 ? pressing.photos[0] : undefined
   };
@@ -316,7 +316,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4" />
-                        <span className="text-green-600">Ouvert</span>
+                        <span className="text-green-600">Ouvert 6h-20h</span>
                       </div>
                     </div>
 

@@ -477,6 +477,8 @@ const SearchPage = () => {
   // API hooks pour les pressings
   const [getNearbyPressings, { data: nearbyPressingsData, isLoading: nearbyLoading, error: nearbyError }] = useLazyGetNearbyPressingsQuery();
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Hook Mapbox pour géolocalisation automatique
   const {
     position: mapboxPosition,
@@ -670,6 +672,28 @@ const SearchPage = () => {
     }
   }, []);
 
+  // Fonction de rafraîchissement manuel pour forcer le rechargement des nouveaux pressings
+  const handleRefreshPressings = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      // Forcer le rechargement avec un timestamp pour éviter le cache
+      await loadNearbyPressings(
+        state.userPosition?.[0], 
+        state.userPosition?.[1]
+      );
+      toast.success('🔄 Données actualisées ! Nouveaux pressings chargés.', {
+        duration: 3000,
+        id: 'refresh-success'
+      });
+    } catch (error) {
+      toast.error('❌ Erreur lors de l\'actualisation', {
+        id: 'refresh-error'
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadNearbyPressings, state.userPosition]);
+
 
   
   // Initialisation des données
@@ -790,7 +814,7 @@ const SearchPage = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900">🔍 Recherche</h1>
+              <h1 className="text-lg sm:text-10px font-bold text-gray-900">🔍</h1>
               <div className="flex items-center space-x-1 sm:space-x-2">
                 {state.isOnline ? (
                   <Wifi className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
@@ -813,6 +837,20 @@ const SearchPage = () => {
             
             {/* Actions rapides */}
             <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Bouton de rafraîchissement pour les nouveaux pressings */}
+              <button
+                onClick={handleRefreshPressings}
+                disabled={isRefreshing || state.isLoading}
+                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Actualiser les pressings (nouveaux pressings)"
+              >
+                {isRefreshing ? (
+                  <Loader className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-4 h-4" />
+                )}
+              </button>
+              
               {/* Bouton géolocalisation haute précision */}
               <div className="flex items-center space-x-1">
                 <MapboxGeolocationButton
@@ -907,10 +945,7 @@ const SearchPage = () => {
         </div>
       </div>
 
-      {/* Breadcrumbs */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
-        <Breadcrumbs />
-      </div>
+      <br />
 
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-6 sm:pb-8">
@@ -1362,8 +1397,8 @@ const SearchPage = () => {
                       
                       <div className="flex items-center space-x-1">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span className={pressing.isOpen ? 'text-green-600' : 'text-red-600'}>
-                          {pressing.isOpen ? 'Ouvert' : 'Fermé'}
+                        <span className="text-green-600">
+                          Ouvert 6h-20h
                         </span>
                       </div>
                       

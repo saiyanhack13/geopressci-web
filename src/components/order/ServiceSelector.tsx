@@ -84,12 +84,13 @@ const ServiceSelector: React.FC<ServiceSelectorProps> = ({ services, onSelection
   };
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold">Choisissez vos services</h3>
+    <Card className="p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-xl sm:text-lg font-semibold text-gray-800">Choisissez vos services</h3>
+        <p className="text-sm text-gray-600 mt-1">Sélectionnez les services dont vous avez besoin</p>
       </div>
       <div>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {services.map((service, index) => {
             // Utiliser un ID unique et fiable
             const serviceId = service._id || service.id || `service-${service.name}-${service.price}`;
@@ -101,40 +102,39 @@ const ServiceSelector: React.FC<ServiceSelectorProps> = ({ services, onSelection
             const servicePrice = service.price || service.prix || 0;
 
             return (
-              <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-l-4 border-l-blue-500">
+              <div key={uniqueKey} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900">{serviceName}</p>
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                      ID: {serviceId.substring(0, 8)}...
-                    </span>
+                  <div className="mb-1">
+                    <p className="font-medium text-gray-900 text-base">{serviceName}</p>
                   </div>
-                  <p className="text-sm text-gray-600 font-semibold">{servicePrice.toLocaleString()} FCFA</p>
-                  {quantity > 0 && (
-                    <p className="text-xs text-green-600 font-medium">
-                      Sous-total: {(servicePrice * quantity).toLocaleString()} FCFA
-                    </p>
-                  )}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                    <p className="text-lg font-bold text-blue-600">{servicePrice.toLocaleString()} FCFA</p>
+                    {quantity > 0 && (
+                      <p className="text-sm text-green-600 font-medium">
+                        Sous-total: {(servicePrice * quantity).toLocaleString()} FCFA
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 bg-white rounded-lg border px-3 py-2">
+                <div className="flex items-center justify-center sm:justify-end mt-3 sm:mt-0">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded-lg border px-3 py-2">
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={() => handleQuantityChange(service, -1)} 
                       disabled={quantity === 0}
-                      className="h-8 w-8"
+                      className="h-10 w-10 sm:h-8 sm:w-8"
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="font-bold text-lg w-8 text-center text-blue-600">
+                    <span className="font-bold text-xl sm:text-lg w-12 sm:w-8 text-center text-blue-600">
                       {quantity}
                     </span>
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={() => handleQuantityChange(service, 1)}
-                      className="h-8 w-8"
+                      className="h-10 w-10 sm:h-8 sm:w-8"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>

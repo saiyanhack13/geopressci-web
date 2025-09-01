@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Home, Settings, Clock, Package, MapPin, Star, Image, BarChart2, DollarSign, Bell, Menu, X, User, CreditCard, HelpCircle } from 'lucide-react';
 
 const MobileNavigation = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   const navItems = [
@@ -24,21 +23,11 @@ const MobileNavigation = () => {
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-      {/* Bouton de menu flottant */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed right-4 bottom-20 w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg transform transition-transform duration-300 ${
-          isOpen ? 'rotate-180' : ''
-        }`}
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+
 
       {/* Menu déroulant */}
       <div
-        className={`bg-white border-t border-gray-200 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        className="bg-white border-t border-gray-200"
       >
         <div className="grid grid-cols-3 gap-2 p-3 max-h-[70vh] overflow-y-auto">
           {navItems.map((item) => {
@@ -52,7 +41,7 @@ const MobileNavigation = () => {
                     ? 'bg-gradient-to-r from-orange-500 to-green-500 text-white shadow-md' 
                     : 'text-gray-700 hover:bg-gray-50 hover:shadow-sm'
                 }`}
-                onClick={() => setIsOpen(false)}
+
               >
                 <item.icon 
                   size={20} 

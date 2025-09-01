@@ -3,9 +3,7 @@ import { Image as ImageIcon, Video, ArrowLeft, Upload, Trash2, Plus, Star, Eye }
 import { getGalleryPlaceholder, getLogoPlaceholder } from '../../utils/placeholders';
 import { 
   useGetPressingPhotosQuery,
-  useUploadGalleryPhotoMutation, 
-  useUploadProfilePhotoMutation,
-  useUploadCoverPhotoMutation,
+  useUploadGalleryPhotoMutation,
   useDeletePhotoMutation,
   useSetPrimaryPhotoMutation,
   PressingPhoto,
@@ -31,10 +29,8 @@ interface MediaItem {
 
 export const GalleryPage: React.FC = () => {
   // API hooks
-  const { data: pressingPhotos, isLoading, error, refetch: refetchPhotos } = useGetPressingPhotosQuery();
+  const { data: pressingPhotos, isLoading, error, refetch: refetchPhotos } = useGetPressingPhotosQuery('pressing-id');
   const [uploadGalleryPhoto] = useUploadGalleryPhotoMutation();
-  const [uploadProfilePhoto] = useUploadProfilePhotoMutation();
-  const [uploadCoverPhoto] = useUploadCoverPhotoMutation();
   const [deletePhoto] = useDeletePhotoMutation();
   const [setPrimaryPhoto] = useSetPrimaryPhotoMutation();
   
@@ -181,16 +177,16 @@ export const GalleryPage: React.FC = () => {
       
       switch (uploadType) {
         case 'profile':
-          uploadMutation = uploadProfilePhoto({ formData });
+          uploadMutation = uploadGalleryPhoto(formData);
           successMessage = 'Photo de profil mise à jour avec succès!';
           break;
         case 'cover':
-          uploadMutation = uploadCoverPhoto({ formData });
+          uploadMutation = uploadGalleryPhoto(formData);
           successMessage = 'Photo de couverture mise à jour avec succès!';
           break;
         case 'gallery':
         default:
-          uploadMutation = uploadGalleryPhoto({ formData });
+          uploadMutation = uploadGalleryPhoto(formData);
           successMessage = 'Photo ajoutée à la galerie avec succès!';
           break;
       }
@@ -217,7 +213,7 @@ export const GalleryPage: React.FC = () => {
 
   const handleSetPrimary = async (photoId: string) => {
     try {
-      await setPrimaryPhoto(photoId).unwrap();
+      await setPrimaryPhoto({ pressingId: 'pressing-id', photoId }).unwrap();
       toast.success('Photo définie comme photo principale');
       refetchPhotos();
     } catch (error: any) {
@@ -235,7 +231,7 @@ export const GalleryPage: React.FC = () => {
     
     if (window.confirm('Supprimer cette photo ?')) {
       try {
-        await deletePhoto(id).unwrap();
+        await deletePhoto({ pressingId: 'pressing-id', photoId: id }).unwrap();
         toast.success('Photo supprimée avec succès!');
       } catch (error: any) {
         console.error('Erreur suppression:', error);
@@ -246,7 +242,7 @@ export const GalleryPage: React.FC = () => {
 
   const handleSetCover = async (id: string) => {
     try {
-      await setPrimaryPhoto(id).unwrap();
+      await setPrimaryPhoto({ pressingId: 'pressing-id', photoId: id }).unwrap();
       toast.success('Photo définie comme couverture');
       refetchPhotos();
     } catch (error: any) {

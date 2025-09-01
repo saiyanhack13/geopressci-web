@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Star, Clock, Phone, Calendar, ShoppingCart, Heart, Share2, MessageCircle, CheckCircle, XCircle, Camera, Award } from 'lucide-react';
+import { ArrowLeft, MapPin, Star, Clock, Phone, Calendar, ShoppingCart, Heart, Share2, MessageCircle, CheckCircle, XCircle, Camera, Award, Send, Package, User, CreditCard, Truck } from 'lucide-react';
 import { getLogoPlaceholder, getCoverPlaceholder } from '../../utils/placeholders';
 import { getPhotoWithFallback } from '../../utils/photoUtils';
 import { Pressing, PressingService } from '../../types';
@@ -21,6 +21,8 @@ import ServiceSelector, { SelectedItem as ServiceSelectorItem } from '../../comp
 import { timeslotService, TimeSlot } from '../../services/timeslotService';
 import BookingCalendar from '../../components/order/BookingCalendar';
 import PriceCalculator from '../../components/order/PriceCalculator';
+import CustomerReviews from '../../components/reviews/CustomerReviews';
+import PhotoGallery from '../../components/pressing/PhotoGallery';
 import Loader from '../../components/ui/Loader';
 import { toast } from 'react-hot-toast';
 import { toLocalISOString, toLocalDateString, createLocalDateTime, formatDateTimeForDisplay } from '../../utils/dateUtils';
@@ -324,19 +326,277 @@ const PressingDetailPage: React.FC = () => {
     }
   };
 
-  const handleCall = () => {
-    if (pressingData?.phone) {
-      const phoneNumber = pressingData.phone.startsWith('+') ? pressingData.phone : `+225${pressingData.phone}`;
-      window.location.href = `tel:${phoneNumber}`;
+
+
+  // États pour la commande WhatsApp
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [customerInfo, setCustomerInfo] = useState({
+    name: currentUser?.prenom ? `${currentUser.prenom} ${currentUser.nom || ''}`.trim() : '',
+    phone: currentUser?.telephone || '',
+    address: ''
+  });
+
+  // Frais de service par défaut
+  const COLLECTION_FEE = 500; // Frais de collecte fixe
+  const DELIVERY_FEE = 1000;   // Frais de livraison (négociable)
+  
+  // États pour les options de service
+  const [includeCollection, setIncludeCollection] = useState(true); // Collecte activée par défaut
+  const [includeDelivery, setIncludeDelivery] = useState(true);     // Livraison activée par défaut
+
+  // Générer le message WhatsApp automatiquement
+  useEffect(() => {
+    if (selectedItems.length > 0 && collectionDateTime && collectionDateTime.date) {
+      const services = selectedItems.map(item => 
+        `• ${item.serviceName} (x${item.quantity}) - ${item.price * item.quantity} FCFA`
+      ).join('\n');
+      
+      const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      // Calculer les frais selon les options sélectionnées
+      const collectionCost = includeCollection ? COLLECTION_FEE : 0;
+      const deliveryCost = includeDelivery ? DELIVERY_FEE : 0;
+      const totalWithFees = subtotal + collectionCost + deliveryCost;
+      
+      const dateStr = collectionDateTime.date.toLocaleDateString('fr-FR');
+      
+      // Construire le message selon les options choisies
+      let feesSection = '';
+      if (collectionCost > 0) {
+        feesSection += `🚚 *Frais de collecte:* ${COLLECTION_FEE} FCFA (fixe)\n`;
+      }
+      if (deliveryCost > 0) {
+        feesSection += `🏠 *Frais de livraison:* ${DELIVERY_FEE} FCFA (négociable)\n`;
+      }
+      
+      // Déterminer le mode de service
+      let serviceMode = '';
+      if (includeCollection && includeDelivery) {
+        serviceMode = '🔄 *Mode:* Collecte + Livraison';
+      } else if (includeCollection && !includeDelivery) {
+        serviceMode = '📦 *Mode:* Collecte uniquement (à récupérer au pressing)';
+      } else if (!includeCollection && includeDelivery) {
+        serviceMode = '🏠 *Mode:* Livraison uniquement (à déposer au pressing)';
+      } else {
+        serviceMode = '🏪 *Mode:* Dépôt et récupération au pressing';
+      }
+      
+      // Instructions de localisation selon le mode de service
+      let locationInstructions = '';
+      if (includeCollection || includeDelivery) {
+        locationInstructions = `\n📍 *IMPORTANT - LOCALISATION:*\n`;
+        
+        if (includeCollection && includeDelivery) {
+          locationInstructions += `🔄 *Pour la collecte ET la livraison:*\n` +
+            `• Partagez votre localisation exacte en temps réel\n` +
+            `• Utilisez le bouton "📍 Localisation" de WhatsApp\n` +
+            `• Activez le partage en temps réel pendant 15-30 min\n` +
+            `• Confirmez l'adresse de livraison si différente\n\n`;
+        } else if (includeCollection) {
+          locationInstructions += `📦 *Pour la collecte:*\n` +
+            `• Partagez votre localisation exacte en temps réel\n` +
+            `• Utilisez le bouton "📍 Localisation" de WhatsApp\n` +
+            `• Activez le partage en temps réel pendant 15-30 min\n` +
+            `• Soyez disponible à l'heure convenue\n\n`;
+        } else if (includeDelivery) {
+          locationInstructions += `🏠 *Pour la livraison:*\n` +
+            `• Partagez votre localisation exacte de livraison\n` +
+            `• Utilisez le bouton "📍 Localisation" de WhatsApp\n` +
+            `• Activez le partage en temps réel pendant 15-30 min\n` +
+            `• Confirmez si l'adresse de livraison est différente\n\n`;
+        }
+        
+        locationInstructions += `💡 *Comment partager votre localisation:*\n` +
+          `1️⃣ Cliquez sur le bouton "📎" ou "+" dans WhatsApp\n` +
+          `2️⃣ Sélectionnez "📍 Localisation"\n` +
+          `3️⃣ Choisissez "Partager la localisation en temps réel"\n` +
+          `4️⃣ Sélectionnez la durée (15-30 minutes recommandées)\n` +
+          `5️⃣ Confirmez le partage\n\n`;
+      }
+      
+      const message = `🧺 *NOUVELLE COMMANDE PRESSING*\n\n` +
+        `👤 *Client:* ${customerInfo.name}\n` +
+        `📱 *Téléphone:* ${customerInfo.phone}\n` +
+        `📍 *Adresse:* ${customerInfo.address}\n\n` +
+        `🏪 *Pressing:* ${pressingData?.businessName}\n\n` +
+        `${serviceMode}\n\n` +
+        `📋 *Services demandés:*\n${services}\n\n` +
+        `💰 *Sous-total services:* ${subtotal} FCFA\n` +
+        feesSection +
+        `💳 *TOTAL ${deliveryCost > 0 ? 'ESTIMÉ' : 'FINAL'}:* ${totalWithFees} FCFA\n\n` +
+        `📅 *Date ${includeCollection ? 'de collecte' : 'de dépôt'} souhaitée:* ${dateStr} à ${collectionDateTime.time}\n` +
+        locationInstructions +
+        (deliveryCost > 0 ? `💬 *Note:* Les frais de livraison peuvent être négociés selon la distance.\n\n` : '') +
+        `✅ *Merci de confirmer la disponibilité et les détails de cette commande.*`;
+      
+      setWhatsappMessage(message);
     }
+  }, [selectedItems, collectionDateTime, customerInfo, pressingData, includeCollection, includeDelivery]);
+
+  // Fonctions pour contacter directement le pressing
+  const handleCall = () => {
+    if (!pressingData?.phone) {
+      toast.error('Numéro de téléphone non disponible');
+      return;
+    }
+    
+    // Nettoyer et formater le numéro
+    const cleanPhone = pressingData.phone.replace(/[^+\d]/g, '');
+    const phoneUrl = `tel:${cleanPhone}`;
+    
+    window.location.href = phoneUrl;
+  };
+
+  const handleDirectWhatsApp = () => {
+    if (!pressingData?.phone) {
+      toast.error('Numéro WhatsApp non disponible');
+      return;
+    }
+    
+    // Nettoyer et formater le numéro pour WhatsApp
+    let phone = pressingData.phone.replace(/[^\d]/g, '');
+    
+    // Ajouter le code pays si nécessaire (225 pour la Côte d'Ivoire)
+    if (!phone.startsWith('225') && phone.length === 8) {
+      phone = '225' + phone;
+    }
+    
+    // Message de contact initial
+    const message = encodeURIComponent(
+      `Bonjour ${pressingData.businessName || 'pressing'} 👋\n\n` +
+      `Je souhaiterais avoir des informations sur vos services.\n\n` +
+      `Merci !`
+    );
+    
+    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
+    
+    // Ouvrir dans un nouvel onglet
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleWhatsApp = () => {
-    if (pressingData?.phone) {
-      const phone = pressingData.phone.startsWith('+') ? pressingData.phone : `+225${pressingData.phone}`;
-      const message = encodeURIComponent(`Bonjour, je souhaite prendre rendez-vous pour un service de pressing.`);
-      window.open(`https://wa.me/${phone.replace('+', '')}?text=${message}`, '_blank');
+    if (selectedItems.length === 0) {
+      toast.error('Veuillez sélectionner au moins un service');
+      return;
     }
+    setShowWhatsAppModal(true);
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!pressingData?.phone) {
+      toast.error('Numéro de téléphone du pressing non disponible');
+      return;
+    }
+    
+    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+      toast.error('Veuillez remplir toutes vos informations');
+      return;
+    }
+    
+    // Vérifier qu'au moins une option de service est sélectionnée
+    if (!includeCollection && !includeDelivery) {
+      toast.error('Veuillez sélectionner au moins une option de service (collecte ou livraison)');
+      return;
+    }
+
+    const phone = pressingData.phone.startsWith('+') ? pressingData.phone : `+225${pressingData.phone}`;
+    
+    // Créer une version simplifiée du message pour WhatsApp
+    const services = selectedItems.map(item => 
+      `- ${item.serviceName} (x${item.quantity}) - ${item.price * item.quantity} FCFA`
+    ).join('\n');
+    
+    const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const collectionCost = includeCollection ? COLLECTION_FEE : 0;
+    const deliveryCost = includeDelivery ? DELIVERY_FEE : 0;
+    const totalWithFees = subtotal + collectionCost + deliveryCost;
+    
+    const dateStr = collectionDateTime.date.toLocaleDateString('fr-FR');
+    
+    // Déterminer le mode de service
+    let serviceMode = '';
+    if (includeCollection && includeDelivery) {
+      serviceMode = 'Mode: Collecte + Livraison';
+    } else if (includeCollection && !includeDelivery) {
+      serviceMode = 'Mode: Collecte uniquement (a recuperer au pressing)';
+    } else if (!includeCollection && includeDelivery) {
+      serviceMode = 'Mode: Livraison uniquement (a deposer au pressing)';
+    } else {
+      serviceMode = 'Mode: Depot et recuperation au pressing';
+    }
+    
+    // Instructions de localisation
+    let locationInstructions = '';
+    if (includeCollection || includeDelivery) {
+      locationInstructions = '\n\nIMPORTANT - LOCALISATION:\n';
+      
+      if (includeCollection && includeDelivery) {
+        locationInstructions += 'Pour la collecte ET la livraison:\n' +
+          '- Partagez votre localisation exacte en temps reel\n' +
+          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
+          '- Activez le partage en temps reel pendant 15-30 min\n' +
+          '- Confirmez l\'adresse de livraison si differente\n';
+      } else if (includeCollection) {
+        locationInstructions += 'Pour la collecte:\n' +
+          '- Partagez votre localisation exacte en temps reel\n' +
+          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
+          '- Activez le partage en temps reel pendant 15-30 min\n' +
+          '- Soyez disponible a l\'heure convenue\n';
+      } else if (includeDelivery) {
+        locationInstructions += 'Pour la livraison:\n' +
+          '- Partagez votre localisation exacte de livraison\n' +
+          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
+          '- Activez le partage en temps reel pendant 15-30 min\n' +
+          '- Confirmez si l\'adresse de livraison est differente\n';
+      }
+      
+      locationInstructions += '\nComment partager votre localisation:\n' +
+        '1. Cliquez sur le bouton "+" dans WhatsApp\n' +
+        '2. Selectionnez "Localisation"\n' +
+        '3. Choisissez "Partager la localisation en temps reel"\n' +
+        '4. Selectionnez la duree (15-30 minutes recommandees)\n' +
+        '5. Confirmez le partage\n';
+    }
+    
+    // Construire le message final
+    const cleanMessage = `NOUVELLE COMMANDE PRESSING\n\n` +
+      `Client: ${customerInfo.name}\n` +
+      `Telephone: ${customerInfo.phone}\n` +
+      `Adresse: ${customerInfo.address}\n\n` +
+      `Pressing: ${pressingData?.businessName}\n\n` +
+      `${serviceMode}\n\n` +
+      `Services demandes:\n${services}\n\n` +
+      `Sous-total services: ${subtotal} FCFA\n` +
+      (collectionCost > 0 ? `Frais de collecte: ${COLLECTION_FEE} FCFA (fixe)\n` : '') +
+      (deliveryCost > 0 ? `Frais de livraison: ${DELIVERY_FEE} FCFA (negociable)\n` : '') +
+      `TOTAL ${deliveryCost > 0 ? 'ESTIME' : 'FINAL'}: ${totalWithFees} FCFA\n\n` +
+      `Date ${includeCollection ? 'de collecte' : 'de depot'} souhaitee: ${dateStr} a ${collectionDateTime.time}` +
+      locationInstructions +
+      (deliveryCost > 0 ? '\n\nNote: Les frais de livraison peuvent etre negocies selon la distance.\n' : '') +
+      '\n\nMerci de confirmer la disponibilite et les details de cette commande.';
+    
+    const encodedMessage = encodeURIComponent(cleanMessage);
+    const whatsappUrl = `https://wa.me/${phone.replace('+', '')}?text=${encodedMessage}`;
+    
+    console.log('Message WhatsApp:', cleanMessage);
+    console.log('URL WhatsApp:', whatsappUrl);
+    
+    window.open(whatsappUrl, '_blank');
+    
+    setShowWhatsAppModal(false);
+    
+    // Message de succès personnalisé selon les options
+    let successMessage = '🚀 Commande envoyée sur WhatsApp!';
+    if (includeCollection && includeDelivery) {
+      successMessage += ' (Collecte + Livraison)';
+    } else if (includeCollection) {
+      successMessage += ' (Collecte uniquement)';
+    } else if (includeDelivery) {
+      successMessage += ' (Livraison uniquement)';
+    }
+    
+    toast.success(successMessage);
   };
 
   // Fonction pour soumettre un avis
@@ -516,7 +776,7 @@ const PressingDetailPage: React.FC = () => {
                   <Phone className="w-4 h-4" />
                   Appeler
                 </Button>
-                <Button onClick={handleWhatsApp} variant="outline" className="flex items-center gap-2 border-green-600 text-green-600 hover:bg-green-50">
+                <Button onClick={handleDirectWhatsApp} variant="outline" className="flex items-center gap-2 border-green-600 text-green-600 hover:bg-green-50">
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp
                 </Button>
@@ -700,44 +960,250 @@ const PressingDetailPage: React.FC = () => {
                 {/* Colonne latérale : Résumé et Paiement */}
                 <aside className="lg:col-span-1">
                   <div className="sticky top-24 space-y-4">
-                    <PriceCalculator selectedItems={selectedItems.map(item => ({
-          serviceId: item.serviceId,
-          name: item.serviceName,
-          price: item.price,
-          quantity: item.quantity
-        }))} />
-                    <Button 
-                      size="lg" 
-                      className="w-full bg-blue-600 hover:bg-blue-700" 
-                      disabled={!isBookingReady} 
-                      onClick={handleBookingConfirmation}
-                    >
-                      {isBookingReady ? '✅ Confirmer la réservation' : '📋 Sélectionnez vos services'}
-                    </Button>
-                    {!isBookingReady && (
-                      <p className="text-sm text-center text-gray-500">
-                        Veuillez choisir au moins un service et un créneau
+                    {/* Résumé de commande avec frais */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-blue-600" />
+                        Résumé de la commande
+                      </h3>
+                      
+                      {selectedItems.length > 0 ? (
+                        <div className="space-y-3">
+                          {/* Services sélectionnés */}
+                          <div className="space-y-2">
+                            {selectedItems.map((item, index) => (
+                              <div key={index} className="flex justify-between items-center text-sm">
+                                <span className="text-gray-700">
+                                  {item.serviceName} (x{item.quantity})
+                                </span>
+                                <span className="font-medium text-gray-900">
+                                  {item.price * item.quantity} FCFA
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Sous-total */}
+                          <div className="border-t pt-3">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Sous-total services:</span>
+                              <span className="font-medium text-gray-900">
+                                {selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)} FCFA
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Options de service avec cases à cocher */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-gray-700">Options de service:</h4>
+                            
+                            {/* Option Collecte */}
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id="collection-option"
+                                  checked={includeCollection}
+                                  onChange={(e) => setIncludeCollection(e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                />
+                                <label htmlFor="collection-option" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                                  <Truck className="w-4 h-4 text-blue-600" />
+                                  Collecte à domicile
+                                </label>
+                              </div>
+                              <span className={`text-sm font-medium ${includeCollection ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                                {COLLECTION_FEE} FCFA
+                              </span>
+                            </div>
+                            
+                            {/* Option Livraison */}
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id="delivery-option"
+                                  checked={includeDelivery}
+                                  onChange={(e) => setIncludeDelivery(e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                />
+                                <label htmlFor="delivery-option" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                                  <Package className="w-4 h-4 text-green-600" />
+                                  Livraison à domicile
+                                </label>
+                              </div>
+                              <div className="text-right">
+                                <span className={`text-sm font-medium ${includeDelivery ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                                  {DELIVERY_FEE} FCFA
+                                </span>
+                                {includeDelivery && (
+                                  <p className="text-xs text-orange-600">*négociable</p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Message d'aide selon les options */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-xs text-blue-800">
+                                {includeCollection && includeDelivery && (
+                                  <>🔄 <strong>Service complet:</strong> Nous collectons et livrons vos vêtements</>
+                                )}
+                                {includeCollection && !includeDelivery && (
+                                  <>📦 <strong>Collecte uniquement:</strong> Nous collectons, vous récupérez au pressing</>
+                                )}
+                                {!includeCollection && includeDelivery && (
+                                  <>🏠 <strong>Livraison uniquement:</strong> Vous déposez au pressing, nous livrons</>
+                                )}
+                                {!includeCollection && !includeDelivery && (
+                                  <>🏪 <strong>Service au pressing:</strong> Dépôt et récupération directement au pressing</>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Total */}
+                          <div className="border-t pt-3">
+                            <div className="flex justify-between items-center font-semibold text-lg">
+                              <span className="text-gray-800">
+                                TOTAL {includeDelivery ? 'ESTIMÉ' : 'FINAL'}:
+                              </span>
+                              <span className="text-green-600">
+                                {selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+                                 (includeCollection ? COLLECTION_FEE : 0) + 
+                                 (includeDelivery ? DELIVERY_FEE : 0)} FCFA
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Note explicative */}
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                            <p className="text-xs text-amber-800">
+                              💡 <strong>Personnalisez votre service:</strong>
+                            </p>
+                            <ul className="text-xs text-amber-700 mt-1 space-y-1">
+                              <li>• Cochez/décochez les options selon vos besoins</li>
+                              <li>• Les frais de livraison peuvent être négociés via WhatsApp</li>
+                              <li>• Seules les options sélectionnées seront envoyées au pressing</li>
+                            </ul>
+                          </div>
+                          
+                          {/* Information sur la localisation */}
+                          {(includeCollection || includeDelivery) && (
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+                              <p className="text-xs text-green-800 flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                <strong>Localisation requise:</strong>
+                              </p>
+                              <ul className="text-xs text-green-700 mt-1 space-y-1">
+                                {includeCollection && (
+                                  <li>• 📦 Partagez votre localisation exacte pour la collecte</li>
+                                )}
+                                {includeDelivery && (
+                                  <li>• 🏠 Partagez votre localisation exacte pour la livraison</li>
+                                )}
+                                <li>• 🔄 Utilisez le partage en temps réel sur WhatsApp (15-30 min)</li>
+                                <li>• 🎯 Cela permet au pressing de vous localiser précisément</li>
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-gray-500">
+                          <Package className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                          <p className="text-sm">Aucun service sélectionné</p>
+                        </div>
+                      )}
+                    </div>
+                    {/* Boutons d'action principaux */}
+                    <div className="space-y-3">
+                      <Button 
+                        size="lg" 
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-xl shadow-lg" 
+                        disabled={selectedItems.length === 0} 
+                        onClick={handleWhatsApp}
+                      >
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        {selectedItems.length > 0 ? '📱 Commander via WhatsApp' : '📋 Sélectionnez vos services'}
+                      </Button>
+                      
+                      <Button 
+                        size="lg" 
+                        variant="outline"
+                        className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-4 rounded-xl" 
+                        disabled={!isBookingReady} 
+                        onClick={handleBookingConfirmation}
+                      >
+                        <Calendar className="w-5 h-5 mr-2" />
+                        {isBookingReady ? '🗓️ Réservation classique' : '📅 Réservation (bientôt)'}
+                      </Button>
+                    </div>
+                    {selectedItems.length === 0 && (
+                      <p className="text-sm text-center text-gray-500 bg-gray-50 p-3 rounded-lg">
+                        💡 Sélectionnez vos services ci-dessus pour commander
                       </p>
                     )}
                     
-                    {/* Informations de contact */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-800 mb-3">📞 Contact direct</h4>
-                      <div className="space-y-2">
+                    {selectedItems.length > 0 && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-sm text-green-800 text-center font-medium">
+                          ✅ {selectedItems.length} service{selectedItems.length > 1 ? 's' : ''} sélectionné{selectedItems.length > 1 ? 's' : ''}
+                        </p>
+                        <p className="text-xs text-green-600 text-center mt-1">
+                          Commandez directement via WhatsApp pour un service rapide!
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Informations de contact améliorées */}
+                    <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 border border-blue-100">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Phone className="w-5 h-5 text-blue-600" />
+                        Contact direct
+                      </h4>
+                      <div className="space-y-3">
                         <button 
                           onClick={handleCall}
-                          className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center gap-2"
+                          className="w-full bg-white hover:bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                          <Phone className="w-4 h-4 text-green-600" />
-                          <span className="text-sm">{pressingData.phone ? (pressingData.phone.startsWith('+') ? pressingData.phone : `+225 ${pressingData.phone}`) : 'Non disponible'}</span>
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Phone className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="font-medium text-gray-800">Appeler</p>
+                            <p className="text-sm text-gray-600">
+                              {pressingData.phone ? (pressingData.phone.startsWith('+') ? pressingData.phone : `+225 ${pressingData.phone}`) : 'Non disponible'}
+                            </p>
+                          </div>
                         </button>
+                        
                         <button 
-                          onClick={handleWhatsApp}
-                          className="w-full text-left p-2 hover:bg-gray-100 rounded flex items-center gap-2"
+                          onClick={() => selectedItems.length > 0 ? handleWhatsApp() : toast.error('Sélectionnez d\'abord vos services')}
+                          className="w-full bg-green-500 hover:bg-green-600 text-white rounded-lg p-3 flex items-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                          <MessageCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm">WhatsApp Business</span>
+                          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <MessageCircle className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="font-medium text-white">WhatsApp Business</p>
+                            <p className="text-sm text-green-100">
+                              {selectedItems.length > 0 ? 'Commander maintenant' : 'Sélectionnez vos services'}
+                            </p>
+                          </div>
+                          <Send className="w-4 h-4 text-white" />
                         </button>
+                      </div>
+                      
+                      {/* Avantages WhatsApp */}
+                      <div className="mt-4 bg-white/50 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-700 mb-2">✨ Avantages WhatsApp:</p>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          <li>• 🚀 Réponse rapide garantie</li>
+                          <li>• 💬 Discussion directe avec le pressing</li>
+                          <li>• 📸 Envoi de photos si nécessaire</li>
+                          <li>• ⏰ Confirmation immédiate</li>
+                          <li>• 💰 Négociation des frais de livraison</li>
+                          <li>• 📍 Adaptation selon votre localisation</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
@@ -747,125 +1213,7 @@ const PressingDetailPage: React.FC = () => {
 
             {activeTab === 'reviews' && (
               <div className="space-y-6">
-                {/* En-tête des avis avec bouton pour laisser un avis */}
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800">Avis clients</h3>
-                    {reviewsData && (
-                      <p className="text-gray-600">
-                        {reviewsData.total} avis • Note moyenne: {reviewsData.averageRating.toFixed(1)}/5 ⭐
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    onClick={() => setShowReviewForm(!showReviewForm)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    ✍️ Laisser un avis
-                  </Button>
-                </div>
-
-                {/* Formulaire pour laisser un avis */}
-                {showReviewForm && (
-                  <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Votre avis sur ce pressing</h4>
-                    
-                    {/* Sélection de la note */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Note</label>
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => setReviewRating(star)}
-                            className={`text-2xl ${
-                              star <= reviewRating ? 'text-yellow-500' : 'text-gray-300'
-                            } hover:text-yellow-400 transition-colors`}
-                          >
-                            ⭐
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Commentaire */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Commentaire</label>
-                      <textarea
-                        value={reviewComment}
-                        onChange={(e) => setReviewComment(e.target.value)}
-                        placeholder="Partagez votre expérience avec ce pressing..."
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows={4}
-                      />
-                    </div>
-
-                    {/* Boutons */}
-                    <div className="flex space-x-3">
-                      <Button
-                        onClick={handleSubmitReview}
-                        disabled={isCreatingReview || !reviewComment.trim()}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {isCreatingReview ? '⏳ Publication...' : '✅ Publier l\'avis'}
-                      </Button>
-                      <Button
-                        onClick={() => setShowReviewForm(false)}
-                        variant="outline"
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Liste des avis */}
-                {reviewsLoading ? (
-                  <div className="text-center py-8">
-                    <Loader />
-                    <p className="mt-2 text-gray-600">Chargement des avis...</p>
-                  </div>
-                ) : reviewsData?.reviews?.length ? (
-                  <div className="space-y-4">
-                    {reviewsData.reviews.map((review) => (
-                      <div key={review.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h5 className="font-semibold text-gray-800">{review.customerName}</h5>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <span
-                                    key={star}
-                                    className={star <= review.rating ? 'text-yellow-500' : 'text-gray-300'}
-                                  >
-                                    ⭐
-                                  </span>
-                                ))}
-                              </div>
-                              <span className="text-sm text-gray-500">
-                                {new Date(review.createdAt).toLocaleDateString('fr-FR')}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-gray-700 mb-3">{review.comment}</p>
-                        {review.response && (
-                          <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
-                            <p className="text-sm font-medium text-blue-800 mb-1">Réponse du pressing :</p>
-                            <p className="text-blue-700">{review.response}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Aucun avis pour le moment</h4>
-                    <p className="text-gray-600">Soyez le premier à laisser un avis sur ce pressing !</p>
-                  </div>
-                )}
+                <CustomerReviews pressingId={id || ''} />
               </div>
             )}
 
@@ -927,12 +1275,8 @@ const PressingDetailPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <h3 className="text-2xl font-bold text-gray-800">Horaires d'ouverture</h3>
                   {currentOpenStatus && (
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      currentOpenStatus.isOpen 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {currentOpenStatus.isOpen ? '✅ Ouvert maintenant' : '❌ Fermé maintenant'}
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      ✅ Ouvert maintenant (6h-20h)
                     </div>
                   )}
                 </div>
@@ -957,20 +1301,11 @@ const PressingDetailPage: React.FC = () => {
                              dayHours.day === 'sunday' ? 'Dimanche' : dayHours.day}
                           </h5>
                           <div className="text-right">
-                            {dayHours.isClosed ? (
-                              <span className="text-red-600 font-medium">Fermé</span>
-                            ) : (
-                              <div>
-                                <p className="text-gray-800 font-medium">
-                                  {dayHours.open} - {dayHours.close}
-                                </p>
-                                {dayHours.specialHours && (
-                                  <p className="text-sm text-blue-600">
-                                    Spécial: {dayHours.specialHours.open} - {dayHours.specialHours.close}
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                            <div>
+                              <p className="text-green-600 font-medium">
+                                06:00 - 20:00
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -998,16 +1333,264 @@ const PressingDetailPage: React.FC = () => {
 
             {activeTab === 'gallery' && (
               <div className="space-y-6">
-                <div className="text-center py-8">
-                  <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Galerie photos</h3>
-                  <p className="text-gray-600">Les photos du pressing seront bientôt disponibles</p>
-                </div>
+                <PhotoGallery 
+                  pressingId={id || ''}
+                  isOwner={false} // Set to true if current user owns this pressing
+                  onUploadPhoto={async (file, description) => {
+                    console.log('Upload photo:', file, description);
+                    toast.success('Photo ajoutée avec succès !');
+                  }}
+                  onDeletePhoto={async (photoId) => {
+                    console.log('Delete photo:', photoId);
+                    toast.success('Photo supprimée');
+                  }}
+                  onSetMainPhoto={async (photoId) => {
+                    console.log('Set main photo:', photoId);
+                    toast.success('Photo principale mise à jour');
+                  }}
+                />
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <CustomerReviews 
+          pressingId={id || ''}
+        />
+      </div>
+      
+      {/* Modal WhatsApp amélioré */}
+      {showWhatsAppModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+            {/* Header */}
+            <div className="bg-green-600 text-white p-4 flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <MessageCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">Commander via WhatsApp</h3>
+                <p className="text-green-100 text-sm">{pressingData?.businessName}</p>
+              </div>
+              <button 
+                onClick={() => setShowWhatsAppModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 max-h-[calc(90vh-80px)] overflow-y-auto">
+              {/* Informations client */}
+              <div className="space-y-4 mb-6">
+                <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Vos informations
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
+                    <input
+                      type="text"
+                      value={customerInfo.name}
+                      onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Votre nom complet"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
+                    <input
+                      type="tel"
+                      value={customerInfo.phone}
+                      onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Votre numéro"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresse de collecte *</label>
+                  <textarea
+                    value={customerInfo.address}
+                    onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    rows={2}
+                    placeholder="Adresse complète pour la collecte"
+                  />
+                </div>
+              </div>
+              
+              {/* Résumé de la commande */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Résumé de votre commande
+                </h4>
+                
+                <div className="space-y-2 mb-3">
+                  {selectedItems.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">{item.serviceName} (x{item.quantity})</span>
+                      <span className="font-medium text-gray-900">{item.price * item.quantity} FCFA</span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Sous-total */}
+                <div className="border-t pt-3">
+                  <div className="flex justify-between items-center text-sm mb-3">
+                    <span className="text-gray-600">Sous-total services:</span>
+                    <span className="font-medium text-gray-900">
+                      {selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)} FCFA
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Options de service */}
+                <div className="space-y-3">
+                  <h5 className="text-sm font-medium text-gray-700">Options de service:</h5>
+                  
+                  {/* Option Collecte */}
+                  <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="modal-collection-option"
+                        checked={includeCollection}
+                        onChange={(e) => setIncludeCollection(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <label htmlFor="modal-collection-option" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                        <Truck className="w-4 h-4 text-blue-600" />
+                        Collecte
+                      </label>
+                    </div>
+                    <span className={`text-sm font-medium ${includeCollection ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                      {COLLECTION_FEE} FCFA
+                    </span>
+                  </div>
+                  
+                  {/* Option Livraison */}
+                  <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="modal-delivery-option"
+                        checked={includeDelivery}
+                        onChange={(e) => setIncludeDelivery(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      />
+                      <label htmlFor="modal-delivery-option" className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                        <Package className="w-4 h-4 text-green-600" />
+                        Livraison
+                      </label>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-sm font-medium ${includeDelivery ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                        {DELIVERY_FEE} FCFA
+                      </span>
+                      {includeDelivery && (
+                        <p className="text-xs text-orange-600">*négociable</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Total final */}
+                <div className="border-t pt-3 mt-3">
+                  <div className="flex justify-between items-center font-semibold text-lg">
+                    <span>TOTAL {includeDelivery ? 'ESTIMÉ' : 'FINAL'}:</span>
+                    <span className="text-green-600">
+                      {selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+                       (includeCollection ? COLLECTION_FEE : 0) + 
+                       (includeDelivery ? DELIVERY_FEE : 0)} FCFA
+                    </span>
+                  </div>
+                </div>
+                
+                {collectionDateTime && collectionDateTime.date && (
+                  <div className="mt-3 pt-3 border-t text-sm text-gray-600">
+                    <p className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Collecte souhaitée: {collectionDateTime.date.toLocaleDateString('fr-FR')} à {collectionDateTime.time}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Information importante sur la localisation */}
+              {(includeCollection || includeDelivery) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    📍 Important : Localisation requise
+                  </h4>
+                  <div className="text-sm text-blue-700 space-y-2">
+                    <p className="font-medium">
+                      {includeCollection && includeDelivery && "Pour la collecte ET la livraison :"}
+                      {includeCollection && !includeDelivery && "Pour la collecte :"}
+                      {!includeCollection && includeDelivery && "Pour la livraison :"}
+                    </p>
+                    <ul className="text-xs space-y-1 ml-4">
+                      <li>• Vous devrez partager votre localisation exacte en temps réel</li>
+                      <li>• Utilisez le bouton "📍 Localisation" dans WhatsApp</li>
+                      <li>• Activez le partage pendant 15-30 minutes</li>
+                      <li>• Cela permet au pressing de vous localiser précisément</li>
+                    </ul>
+                    <p className="text-xs font-medium text-blue-800 mt-2">
+                      💡 Des instructions détaillées seront incluses dans le message WhatsApp
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Aperçu du message */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <Send className="w-4 h-4" />
+                  Message qui sera envoyé
+                </h4>
+                <div className="bg-white rounded-lg p-3 text-sm text-gray-700 max-h-40 overflow-y-auto border">
+                  <pre className="whitespace-pre-wrap font-sans">{whatsappMessage}</pre>
+                </div>
+              </div>
+              
+              {/* Boutons d'action */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowWhatsAppModal(false)}
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleSendWhatsApp}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Envoyer sur WhatsApp
+                </Button>
+              </div>
+              
+              {/* Note informative */}
+              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  💡 <strong>Comment ça marche:</strong> Votre commande sera envoyée directement au pressing via WhatsApp. 
+                  Le pressing vous contactera pour confirmer les détails et organiser la collecte.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

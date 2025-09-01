@@ -141,18 +141,19 @@ const PressingList: React.FC<PressingListProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {pressings.map((pressing) => {
           const distance = showDistance ? calculateDistance(pressing) : undefined;
-          const isFavorite = pressing.id ? favorites.includes(pressing.id) : false;
+          const pressingId = pressing._id || pressing.id;
+          const isFavorite = pressingId ? favorites.includes(pressingId) : false;
           
           return (
             <PressingCard
-              key={pressing.id || pressing._id || Math.random().toString()}
+              key={pressingId || Math.random().toString()}
               pressing={pressing}
               distance={distance}
               isFavorite={isFavorite}
               viewMode="grid"
               showDistance={showDistance}
               onSelect={() => onPressingSelect?.(pressing)}
-              onToggleFavorite={() => pressing.id && onToggleFavorite?.(pressing.id)}
+              onToggleFavorite={() => pressingId && onToggleFavorite?.(pressingId)}
               onGetDirections={() => onGetDirections?.(pressing)}
               onCall={() => onCall?.(pressing)}
             />
@@ -167,18 +168,19 @@ const PressingList: React.FC<PressingListProps> = ({
     <div className="space-y-4">
       {pressings.map((pressing) => {
         const distance = showDistance ? calculateDistance(pressing) : undefined;
-        const isFavorite = pressing.id ? favorites.includes(pressing.id) : false;
+        const pressingId = pressing._id || pressing.id;
+        const isFavorite = pressingId ? favorites.includes(pressingId) : false;
         
         return (
           <PressingCard
-            key={pressing.id || pressing._id || Math.random().toString()}
+            key={pressingId || Math.random().toString()}
             pressing={pressing}
             distance={distance}
             isFavorite={isFavorite}
             viewMode="list"
             showDistance={showDistance}
             onSelect={() => onPressingSelect?.(pressing)}
-            onToggleFavorite={() => pressing.id && onToggleFavorite?.(pressing.id)}
+            onToggleFavorite={() => pressingId && onToggleFavorite?.(pressingId)}
             onGetDirections={() => onGetDirections?.(pressing)}
             onCall={() => onCall?.(pressing)}
           />

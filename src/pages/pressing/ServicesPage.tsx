@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ServiceEditor from '../../components/business/ServiceEditor';
+import QuickServiceForm from '../../components/business/QuickServiceForm';
 import KPICard from '../../components/business/KPICard';
 import { 
   useGetPressingServicesQuery, 
@@ -12,6 +13,7 @@ import {
 } from '../../services/pressingApi';
 import Loader from '../../components/ui/Loader';
 import { toast } from 'react-hot-toast';
+import { Plus, Edit, Trash2, Eye, EyeOff, Star, TrendingUp, Users, DollarSign, Clock, Search, Zap, Sparkles } from 'lucide-react';
 
 // Interface étendue avec compatibilité pour les champs en français/anglais
 type Service = Omit<PressingService, 'id' | 'name' | 'price' | 'category' | 'duration' | 'isAvailable'> & {
@@ -51,6 +53,10 @@ const ServicesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [editingService, setEditingService] = useState<Service | undefined>(undefined);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  
+  // Référence pour scroller vers le formulaire
+  const quickAddRef = useRef<HTMLDivElement>(null);
   
   // Hooks API pour récupérer les données réelles
   const { 
@@ -293,8 +299,19 @@ const ServicesPage: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
-    setEditingService(undefined);
     setShowEditor(false);
+    setEditingService(undefined);
+  };
+
+  const handleQuickAdd = () => {
+    setShowQuickAdd(true);
+    setTimeout(() => {
+      quickAddRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
+  const handleCancelQuickAdd = () => {
+    setShowQuickAdd(false);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -712,6 +729,45 @@ const ServicesPage: React.FC = () => {
             </div>
           </section>
         )}
+
+        {/* Quick Add Service Form - At Bottom */}
+        {showQuickAdd && (
+          <div ref={quickAddRef} className="mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    Créer un nouveau service rapidement
+                  </h3>
+                  <button
+                    onClick={handleCancelQuickAdd}
+                    className="text-white/80 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="text-blue-100 text-sm mt-1">
+                  Interface optimisée mobile pour créer vos services en quelques secondes
+                </p>
+              </div>
+              <div className="p-6">
+                <QuickServiceForm onSave={handleSaveService} onCancel={handleCancelQuickAdd} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Action Button - Mobile */}
+        <div className="fixed bottom-6 right-6 z-40 sm:hidden">
+          <button
+            onClick={handleQuickAdd}
+            className="w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all duration-200 transform hover:scale-110 active:scale-95"
+            aria-label="Ajouter un service rapidement"
+          >
+            <Plus className="w-6 h-6 mx-auto" />
+          </button>
+        </div>
       </div>
     </div>
   );

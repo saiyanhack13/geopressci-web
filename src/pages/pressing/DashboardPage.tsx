@@ -319,12 +319,6 @@ const DashboardPage: React.FC = () => {
                 </h3>
                 <div className="space-y-3">
                   <button 
-                    className="w-full min-h-[44px] bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:bg-blue-700 transition-colors font-medium text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    aria-label="Créer une nouvelle commande"
-                  >
-                    ➕ Nouvelle commande
-                  </button>
-                  <button 
                     className="w-full min-h-[44px] border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 focus:bg-gray-50 transition-colors font-medium text-base focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     aria-label="Gérer les clients"
                   >
