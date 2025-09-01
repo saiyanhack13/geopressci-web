@@ -68,7 +68,7 @@ const Layout = ({
         <main className={`flex-1 overflow-auto ${
           shouldShowSidebar ? 'lg:ml-64' : ''
         } ${shouldShowBottomNav ? 'pb-16 md:pb-0' : ''} ${className}`}>
-          <div className="container mx-auto px-4 py-6 max-w-7xl">
+          <div className="container mx-auto px-1 py-2 max-w-7xl">
             {children}
           </div>
         </main>

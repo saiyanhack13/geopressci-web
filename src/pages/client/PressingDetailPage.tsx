@@ -833,28 +833,6 @@ const PressingDetailPage: React.FC = () => {
                       setSelectedItems(mappedItems);
                     }} 
                   />
-                  {/* Indicateur de créneaux temps réel */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-800">
-                          Créneaux disponibles: {availableTimeslots.length}
-                        </span>
-                        {timeslotsLoading && (
-                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        )}
-                      </div>
-                      <span className="text-xs text-blue-600">
-                        Dernière mise à jour: {lastTimeslotUpdate.toLocaleTimeString()}
-                      </span>
-                    </div>
-                    {availableTimeslots.length > 0 && (
-                      <div className="mt-2 text-xs text-blue-700">
-                        🚀 Nouveaux créneaux disponibles pour réservation immédiate!
-                      </div>
-                    )}
-                  </div>
                   
                   <BookingCalendar 
                     onDateTimeChange={(dateTime, selectedSlot) => {

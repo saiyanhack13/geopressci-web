@@ -557,7 +557,7 @@ const SchedulePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1 sm:py-8">
           
           {/* Header Skeleton */}
           <header className="mb-8 sm:mb-12">
@@ -669,7 +669,7 @@ const SchedulePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1 sm:py-8">
         
         {/* Header - UI/UX 2025 */}
         <header className="mb-8 sm:mb-12">

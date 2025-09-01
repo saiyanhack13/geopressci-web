@@ -27,27 +27,12 @@ const PressingLayout: React.FC<PressingLayoutProps> = ({
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* En-tête */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div>
-            {title && (
-              <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-            )}
-            {description && (
-              <p className="text-sm text-gray-500 mt-1">{description}</p>
-            )}
-          </div>
-          
-          {headerActions && (
-            <div className="flex items-center space-x-3">
-              {headerActions}
-            </div>
-          )}
-        </div>
+        
       </header>
 
       {/* Contenu principal */}
       <main className={cn("flex-1 pb-24 lg:pb-4", className)}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1">
           {children}
         </div>
       </main>

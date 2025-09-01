@@ -228,7 +228,7 @@ export const BusinessProfilePage: React.FC = () => {
       </header>
 
       {/* Main Content Container - Mobile-First */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12" role="main">
+      <main className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12" role="main">
         
         {/* Cover Image and Logo - Mobile-First UI/UX 2025 */}
         <section className="relative mb-8 sm:mb-12 lg:mb-16" aria-labelledby="profile-header">

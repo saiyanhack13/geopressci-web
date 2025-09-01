@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { MapPin, Target, Navigation2, CheckCircle, XCircle, Satellite, Loader, Crosshair } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { MapPin, Target, Navigation2, CheckCircle, XCircle, Satellite, Loader, Crosshair, Clock, Save, RefreshCw } from 'lucide-react';
 import { 
   useGetPressingProfileQuery,
   useUpdatePressingProfileMutation
@@ -13,6 +13,8 @@ import ManualLocationSelector from '../../components/geolocation/ManualLocationS
 // Import des composants de géolocalisation Mapbox
 import MapboxGeolocationButton from '../../components/geolocation/MapboxGeolocationButton';
 import { MapboxGeolocationPosition } from '../../hooks/useMapboxGeolocation';
+import RealTimeLocationTracker from '../../components/geolocation/RealTimeLocationTracker';
+import LocationHelpGuide from '../../components/pressing/LocationHelpGuide';
 
 // Types pour les coordonnées
 interface AddressData {
@@ -38,6 +40,12 @@ export const LocationPage: React.FC = () => {
   
   // États pour la géolocalisation
   const [geolocationStatus, setGeolocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  
+  // États pour la position en temps réel
+  const [realTimePosition, setRealTimePosition] = useState<{lat: number, lng: number} | null>(null);
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState<Date | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   
   // Coordonnées par défaut d'Abidjan
   const defaultCoordinates = { lat: 5.3364, lng: -4.0267 };
@@ -123,7 +131,7 @@ export const LocationPage: React.FC = () => {
   // Sauvegarder l'adresse
   const handleSaveAddress = async (addressToSave: AddressData) => {
     try {
-      await updateProfile({
+      const updateData = {
         address: {
           street: addressToSave.street,
           city: addressToSave.city,
@@ -135,16 +143,125 @@ export const LocationPage: React.FC = () => {
             lng: addressToSave.coordinates.lng
           }
         }
-      }).unwrap();
-      
-      toast.success('✅ Adresse mise à jour avec succès');
+      };
+
+      await updateProfile(updateData).unwrap();
       setHasUnsavedChanges(false);
+      setRealTimePosition(addressToSave.coordinates);
+      setLastLocationUpdate(new Date());
+      
+      toast.success('📍 Position sauvegardée comme localisation en temps réel !', {
+        duration: 4000,
+        icon: '🎯'
+      });
       refetch();
-    } catch (error: any) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('❌ Erreur lors de la sauvegarde de l\'adresse');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'adresse:', error);
+      toast.error('❌ Erreur lors de la mise à jour de l\'adresse');
     }
   };
+
+  // Démarrer le suivi de position en temps réel
+  const startLocationTracking = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error('Géolocalisation non supportée par votre navigateur');
+      return;
+    }
+
+    setIsTrackingLocation(true);
+    setGeolocationStatus('loading');
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const newPosition = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        
+        setRealTimePosition(newPosition);
+        setLastLocationUpdate(new Date());
+        setLocationAccuracy(position.coords.accuracy);
+        setGeolocationStatus('success');
+        
+        // Auto-sauvegarder la position si elle a changé significativement
+        if (currentAddress.coordinates) {
+          const distance = calculateDistance(
+            currentAddress.coordinates.lat,
+            currentAddress.coordinates.lng,
+            newPosition.lat,
+            newPosition.lng
+          );
+          
+          // Si la distance est supérieure à 50 mètres, proposer de mettre à jour
+          if (distance > 0.05) {
+            toast('📍 Nouvelle position détectée. Voulez-vous la sauvegarder ?', {
+              duration: 8000,
+              icon: '🎯'
+            });
+          }
+        }
+      },
+      (error) => {
+        console.error('Erreur géolocalisation:', error);
+        setGeolocationStatus('error');
+        toast.error('Impossible d\'obtenir votre position');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000
+      }
+    );
+
+    // Nettoyer le watcher après 5 minutes
+    setTimeout(() => {
+      navigator.geolocation.clearWatch(watchId);
+      setIsTrackingLocation(false);
+    }, 300000);
+  }, [currentAddress.coordinates]);
+
+  // Arrêter le suivi de position
+  const stopLocationTracking = useCallback(() => {
+    setIsTrackingLocation(false);
+    setGeolocationStatus('idle');
+    toast.success('Suivi de position arrêté');
+  }, []);
+
+  // Calculer la distance entre deux points (en km)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Sauvegarder la position en temps réel actuelle
+  const saveCurrentRealTimePosition = async () => {
+    if (!realTimePosition) {
+      toast.error('Aucune position en temps réel disponible');
+      return;
+    }
+
+    const updatedAddress = {
+      ...currentAddress,
+      coordinates: realTimePosition
+    };
+
+    await handleSaveAddress(updatedAddress);
+  };
+
+  // Initialiser la position en temps réel depuis le profil (utiliser les coordonnees de l'adresse)
+  useEffect(() => {
+    if (profileData?.address?.coordinates) {
+      const coords = extractValidCoordinates(profileData.address.coordinates);
+      setRealTimePosition(coords);
+      setLastLocationUpdate(new Date()); // Utiliser la date actuelle
+    }
+  }, [profileData]);
 
   // Fonction pour détecter le quartier depuis les coordonnées
   const getNeighborhoodFromCoordinates = useCallback((lat: number, lng: number): string => {
@@ -231,7 +348,7 @@ export const LocationPage: React.FC = () => {
     return (
       <PressingLayout>
         <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
             <div className="animate-pulse space-y-6">
               <div className="h-8 bg-gray-200 rounded w-1/3"></div>
               <div className="bg-white rounded-2xl p-8 space-y-6">
@@ -252,8 +369,7 @@ export const LocationPage: React.FC = () => {
   return (
     <PressingLayout>
       <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
+        <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -473,6 +589,32 @@ export const LocationPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Composant de suivi en temps réel avancé */}
+              <RealTimeLocationTracker
+                onLocationUpdate={(location) => {
+                  setRealTimePosition({ lat: location.lat, lng: location.lng });
+                  setLastLocationUpdate(location.timestamp);
+                  setLocationAccuracy(location.accuracy);
+                }}
+                onLocationSave={async (location) => {
+                  const updatedAddress = {
+                    ...currentAddress,
+                    coordinates: { lat: location.lat, lng: location.lng },
+                    district: location.district || currentAddress.district
+                  };
+                  await handleSaveAddress(updatedAddress);
+                }}
+                isTracking={isTrackingLocation}
+                onTrackingChange={setIsTrackingLocation}
+                currentLocation={realTimePosition ? {
+                  lat: realTimePosition.lat,
+                  lng: realTimePosition.lng,
+                  accuracy: locationAccuracy || 10,
+                  timestamp: lastLocationUpdate || new Date()
+                } : null}
+                autoSaveThreshold={50}
+              />
+
               {/* Avantages */}
               <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
                 <h3 className="font-bold text-green-900 mb-4">
@@ -496,8 +638,15 @@ export const LocationPage: React.FC = () => {
                     <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Améliore la confiance des clients</span>
                   </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>Position en temps réel pour plus de précision</span>
+                  </li>
                 </ul>
               </div>
+
+              {/* Guide d'aide pour la géolocalisation */}
+              <LocationHelpGuide />
 
               {/* Statistiques de position */}
               {hasValidCoordinates && (

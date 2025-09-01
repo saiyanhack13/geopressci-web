@@ -1053,7 +1053,7 @@ export const ProfileSettingsPage = () => {
       title="Paramètres du profil"
       description="Gérez les informations de votre pressing"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-1 sm:px-6 lg:px-8">
         
         {/* Header Section - Mobile-First UI/UX 2025 */}
         <header className="mb-8">

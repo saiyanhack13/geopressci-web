@@ -340,7 +340,7 @@ const ServicesPage: React.FC = () => {
     console.error('Erreur lors du chargement des services:', error);
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1 sm:py-8">
           <div className="text-center py-12 sm:py-20">
             <div className="text-6xl sm:text-8xl mb-6" role="img" aria-label="Erreur">⚠️</div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
@@ -365,7 +365,7 @@ const ServicesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8 py-1 sm:py-8">
         
         {/* Header - UI/UX 2025 */}
         <header className="mb-8 sm:mb-12">

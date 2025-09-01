@@ -102,10 +102,26 @@ const ServiceSelector: React.FC<ServiceSelectorProps> = ({ services, onSelection
             const servicePrice = service.price || service.prix || 0;
 
             return (
-              <div key={uniqueKey} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div key={uniqueKey} className="flex flex-col sm:flex-row sm:items-start sm:justify-between p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex-1">
-                  <div className="mb-1">
-                    <p className="font-medium text-gray-900 text-base">{serviceName}</p>
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-gray-900 text-base">{serviceName}</p>
+                      {(service.categorie || service.category) && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {service.categorie || service.category}
+                        </span>
+                      )}
+                    </div>
+                    {(service.description) && (
+                      <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+                    )}
+                    {(service.dureeMoyenne || service.duration) && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <span>⏱️</span>
+                        <span>Durée: {service.dureeMoyenne || service.duration}h</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
                     <p className="text-lg font-bold text-blue-600">{servicePrice.toLocaleString()} FCFA</p>

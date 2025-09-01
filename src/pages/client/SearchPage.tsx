@@ -504,7 +504,7 @@ const SearchPage = () => {
           lat: lat || state.userPosition?.[0] || 5.3364,
           lng: lng || state.userPosition?.[1] || -4.0267
         },
-        radius: state.filters.distanceRange[1] || 50 // Utiliser la distance maximale du filtre
+        radius: state.filters.distanceRange[1] || 100000 // Rayon très large pour récupérer tous les pressings d'Abidjan (100km)
       };
       
       const result = await getNearbyPressings(params);
