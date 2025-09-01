@@ -239,20 +239,20 @@ const ManualLocationSelector: React.FC<ManualLocationSelectorProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 ${className}`}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50 ${className}`}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Target className="w-5 h-5 text-blue-600" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                   Choisir la position de votre pressing
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
                   Cliquez sur la carte ou déplacez le marqueur pour définir votre adresse
                 </p>
               </div>
@@ -267,7 +267,7 @@ const ManualLocationSelector: React.FC<ManualLocationSelectorProps> = ({
         </div>
 
         {/* Carte */}
-        <div className="relative h-96">
+        <div className="relative h-64 sm:h-80 md:h-96 flex-shrink-0">
           <div
             ref={mapRef}
             className="w-full h-full"
@@ -297,53 +297,55 @@ const ManualLocationSelector: React.FC<ManualLocationSelectorProps> = ({
           )}
         </div>
 
-        {/* Informations de position */}
+        {/* Informations de position et actions */}
         {isMapLoaded && (
-          <div className="p-6 bg-gray-50 border-t border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <Navigation className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-gray-700">Coordonnées</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">Coordonnées</span>
                 </div>
-                <p className="text-sm text-gray-900 font-mono">
-                  {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
+                <p className="text-xs sm:text-sm text-gray-900 font-mono">
+                  {selectedPosition.lat.toFixed(4)}, {selectedPosition.lng.toFixed(4)}
                 </p>
               </div>
               
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700">Quartier détecté</span>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">Quartier détecté</span>
                 </div>
-                <p className="text-sm text-gray-900 font-medium">
+                <p className="text-xs sm:text-sm text-gray-900 font-medium">
                   {detectedDistrict || 'Détection en cours...'}
                 </p>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            {/* Actions - Toujours visibles */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={onCancel}
-                className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 text-gray-700 bg-white border border-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
               >
                 Annuler
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {isConfirming ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Confirmation...
+                    <span className="hidden sm:inline">Confirmation...</span>
+                    <span className="sm:hidden">...</span>
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    Confirmer cette position
+                    <span className="hidden sm:inline">Confirmer cette position</span>
+                    <span className="sm:hidden">Confirmer</span>
                   </>
                 )}
               </button>

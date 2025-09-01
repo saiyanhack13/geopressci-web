@@ -466,10 +466,8 @@ export const LocationPage: React.FC = () => {
                   
                   <AddressLocationManager
                     address={currentAddress}
-                    onAddressChange={(newAddress) => {
-                      handleAddressChange(newAddress);
-                      handleSaveAddress(newAddress);
-                    }}
+                    onAddressChange={handleAddressChange}
+                    onSaveAddress={handleSaveAddress}
                     isLoading={isUpdating}
                   />
                 </div>

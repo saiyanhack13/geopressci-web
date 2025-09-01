@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Target, Edit, Check, AlertCircle, Navigation2 } from 'lucide-react';
+import { MapPin, Target, Edit, Check, AlertCircle, Navigation2, Save, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ManualLocationSelector from '../geolocation/ManualLocationSelector';
 
@@ -18,6 +18,7 @@ interface AddressData {
 interface AddressLocationManagerProps {
   address: AddressData;
   onAddressChange: (address: AddressData) => void;
+  onSaveAddress?: (address: AddressData) => void;
   isLoading?: boolean;
   className?: string;
 }
@@ -25,11 +26,21 @@ interface AddressLocationManagerProps {
 const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
   address,
   onAddressChange,
+  onSaveAddress,
   isLoading = false,
   className = ''
 }) => {
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [hasValidCoordinates, setHasValidCoordinates] = useState(false);
+  const [editedAddress, setEditedAddress] = useState<AddressData>(address);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Synchroniser l'adresse éditée avec l'adresse reçue
+  useEffect(() => {
+    setEditedAddress(address);
+    setHasChanges(false);
+  }, [address]);
 
   // Vérifier si les coordonnées sont valides (dans la zone d'Abidjan)
   useEffect(() => {
@@ -38,12 +49,34 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
     setHasValidCoordinates(isValid);
   }, [address.coordinates]);
 
-  // Gérer les changements de champs d'adresse
+  // Gérer les changements de champs d'adresse (édition locale)
   const handleFieldChange = (field: keyof AddressData, value: string) => {
-    onAddressChange({
-      ...address,
+    const newAddress = {
+      ...editedAddress,
       [field]: value
-    });
+    };
+    setEditedAddress(newAddress);
+    setHasChanges(true);
+    setIsEditing(true);
+  };
+
+  // Sauvegarder les modifications
+  const handleSave = () => {
+    onAddressChange(editedAddress);
+    if (onSaveAddress) {
+      onSaveAddress(editedAddress);
+    }
+    setIsEditing(false);
+    setHasChanges(false);
+    toast.success('Adresse mise à jour avec succès');
+  };
+
+  // Annuler les modifications
+  const handleCancel = () => {
+    setEditedAddress(address);
+    setIsEditing(false);
+    setHasChanges(false);
+    toast('Modifications annulées', { icon: '↩️' });
   };
 
   // Gérer la sélection de position sur la carte
@@ -134,7 +167,7 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
               <input
                 id="street"
                 type="text"
-                value={address.street}
+                value={editedAddress.street}
                 onChange={(e) => handleFieldChange('street', e.target.value)}
                 placeholder="Ex: 123 Boulevard de la République"
                 required
@@ -154,7 +187,7 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
                 <input
                   id="district"
                   type="text"
-                  value={address.district}
+                  value={editedAddress.district}
                   onChange={(e) => handleFieldChange('district', e.target.value)}
                   placeholder="Ex: Cocody, Yopougon..."
                   required
@@ -169,7 +202,7 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
                 <input
                   id="city"
                   type="text"
-                  value={address.city}
+                  value={editedAddress.city}
                   onChange={(e) => handleFieldChange('city', e.target.value)}
                   placeholder="Abidjan"
                   required
@@ -186,7 +219,7 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
                 <input
                   id="postalCode"
                   type="text"
-                  value={address.postalCode}
+                  value={editedAddress.postalCode}
                   onChange={(e) => handleFieldChange('postalCode', e.target.value)}
                   placeholder="Ex: 00225"
                   className="w-full min-h-[44px] px-4 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -200,7 +233,7 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
                 <input
                   id="country"
                   type="text"
-                  value={address.country}
+                  value={editedAddress.country}
                   onChange={(e) => handleFieldChange('country', e.target.value)}
                   placeholder="Côte d'Ivoire"
                   required
@@ -208,6 +241,46 @@ const AddressLocationManager: React.FC<AddressLocationManagerProps> = ({
                 />
               </div>
             </div>
+            
+            {/* Boutons de sauvegarde/annulation */}
+            {hasChanges && (
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Edit className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">
+                      Modifications non sauvegardées
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sauvegarde...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Sauvegarder
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
