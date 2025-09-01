@@ -326,7 +326,46 @@ const PressingDetailPage: React.FC = () => {
     }
   };
 
+  // Fonctions pour contacter directement le pressing
+  const handleCall = () => {
+    if (!pressingData?.phone) {
+      toast.error('Numéro de téléphone non disponible');
+      return;
+    }
+    
+    // Nettoyer et formater le numéro
+    const cleanPhone = pressingData.phone.replace(/[^+\d]/g, '');
+    const phoneUrl = `tel:${cleanPhone}`;
+    
+    window.location.href = phoneUrl;
+  };
 
+  const handleDirectWhatsApp = () => {
+    if (!pressingData?.phone) {
+      toast.error('Numéro WhatsApp non disponible');
+      return;
+    }
+    
+    // Nettoyer et formater le numéro pour WhatsApp
+    let phone = pressingData.phone.replace(/[^\d]/g, '');
+    
+    // Ajouter le code pays si nécessaire (225 pour la Côte d'Ivoire)
+    if (!phone.startsWith('225') && phone.length === 8) {
+      phone = '225' + phone;
+    }
+    
+    // Message de contact initial
+    const message = encodeURIComponent(
+      `Bonjour ${pressingData.businessName || 'pressing'} 👋\n\n` +
+      `Je souhaiterais avoir des informations sur vos services.\n\n` +
+      `Merci !`
+    );
+    
+    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
+    
+    // Ouvrir dans un nouvel onglet
+    window.open(whatsappUrl, '_blank');
+  };
 
   // États pour la commande WhatsApp
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
@@ -434,47 +473,6 @@ const PressingDetailPage: React.FC = () => {
     }
   }, [selectedItems, collectionDateTime, customerInfo, pressingData, includeCollection, includeDelivery]);
 
-  // Fonctions pour contacter directement le pressing
-  const handleCall = () => {
-    if (!pressingData?.phone) {
-      toast.error('Numéro de téléphone non disponible');
-      return;
-    }
-    
-    // Nettoyer et formater le numéro
-    const cleanPhone = pressingData.phone.replace(/[^+\d]/g, '');
-    const phoneUrl = `tel:${cleanPhone}`;
-    
-    window.location.href = phoneUrl;
-  };
-
-  const handleDirectWhatsApp = () => {
-    if (!pressingData?.phone) {
-      toast.error('Numéro WhatsApp non disponible');
-      return;
-    }
-    
-    // Nettoyer et formater le numéro pour WhatsApp
-    let phone = pressingData.phone.replace(/[^\d]/g, '');
-    
-    // Ajouter le code pays si nécessaire (225 pour la Côte d'Ivoire)
-    if (!phone.startsWith('225') && phone.length === 8) {
-      phone = '225' + phone;
-    }
-    
-    // Message de contact initial
-    const message = encodeURIComponent(
-      `Bonjour ${pressingData.businessName || 'pressing'} 👋\n\n` +
-      `Je souhaiterais avoir des informations sur vos services.\n\n` +
-      `Merci !`
-    );
-    
-    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
-    
-    // Ouvrir dans un nouvel onglet
-    window.open(whatsappUrl, '_blank');
-  };
-
   const handleWhatsApp = () => {
     if (selectedItems.length === 0) {
       toast.error('Veuillez sélectionner au moins un service');
@@ -502,87 +500,8 @@ const PressingDetailPage: React.FC = () => {
 
     const phone = pressingData.phone.startsWith('+') ? pressingData.phone : `+225${pressingData.phone}`;
     
-    // Créer une version simplifiée du message pour WhatsApp
-    const services = selectedItems.map(item => 
-      `- ${item.serviceName} (x${item.quantity}) - ${item.price * item.quantity} FCFA`
-    ).join('\n');
-    
-    const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const collectionCost = includeCollection ? COLLECTION_FEE : 0;
-    const deliveryCost = includeDelivery ? DELIVERY_FEE : 0;
-    const totalWithFees = subtotal + collectionCost + deliveryCost;
-    
-    const dateStr = collectionDateTime.date.toLocaleDateString('fr-FR');
-    
-    // Déterminer le mode de service
-    let serviceMode = '';
-    if (includeCollection && includeDelivery) {
-      serviceMode = 'Mode: Collecte + Livraison';
-    } else if (includeCollection && !includeDelivery) {
-      serviceMode = 'Mode: Collecte uniquement (a recuperer au pressing)';
-    } else if (!includeCollection && includeDelivery) {
-      serviceMode = 'Mode: Livraison uniquement (a deposer au pressing)';
-    } else {
-      serviceMode = 'Mode: Depot et recuperation au pressing';
-    }
-    
-    // Instructions de localisation
-    let locationInstructions = '';
-    if (includeCollection || includeDelivery) {
-      locationInstructions = '\n\nIMPORTANT - LOCALISATION:\n';
-      
-      if (includeCollection && includeDelivery) {
-        locationInstructions += 'Pour la collecte ET la livraison:\n' +
-          '- Partagez votre localisation exacte en temps reel\n' +
-          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
-          '- Activez le partage en temps reel pendant 15-30 min\n' +
-          '- Confirmez l\'adresse de livraison si differente\n';
-      } else if (includeCollection) {
-        locationInstructions += 'Pour la collecte:\n' +
-          '- Partagez votre localisation exacte en temps reel\n' +
-          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
-          '- Activez le partage en temps reel pendant 15-30 min\n' +
-          '- Soyez disponible a l\'heure convenue\n';
-      } else if (includeDelivery) {
-        locationInstructions += 'Pour la livraison:\n' +
-          '- Partagez votre localisation exacte de livraison\n' +
-          '- Utilisez le bouton "Localisation" de WhatsApp\n' +
-          '- Activez le partage en temps reel pendant 15-30 min\n' +
-          '- Confirmez si l\'adresse de livraison est differente\n';
-      }
-      
-      locationInstructions += '\nComment partager votre localisation:\n' +
-        '1. Cliquez sur le bouton "+" dans WhatsApp\n' +
-        '2. Selectionnez "Localisation"\n' +
-        '3. Choisissez "Partager la localisation en temps reel"\n' +
-        '4. Selectionnez la duree (15-30 minutes recommandees)\n' +
-        '5. Confirmez le partage\n';
-    }
-    
-    // Construire le message final
-    const cleanMessage = `NOUVELLE COMMANDE PRESSING\n\n` +
-      `Client: ${customerInfo.name}\n` +
-      `Telephone: ${customerInfo.phone}\n` +
-      `Adresse: ${customerInfo.address}\n\n` +
-      `Pressing: ${pressingData?.businessName}\n\n` +
-      `${serviceMode}\n\n` +
-      `Services demandes:\n${services}\n\n` +
-      `Sous-total services: ${subtotal} FCFA\n` +
-      (collectionCost > 0 ? `Frais de collecte: ${COLLECTION_FEE} FCFA (fixe)\n` : '') +
-      (deliveryCost > 0 ? `Frais de livraison: ${DELIVERY_FEE} FCFA (negociable)\n` : '') +
-      `TOTAL ${deliveryCost > 0 ? 'ESTIME' : 'FINAL'}: ${totalWithFees} FCFA\n\n` +
-      `Date ${includeCollection ? 'de collecte' : 'de depot'} souhaitee: ${dateStr} a ${collectionDateTime.time}` +
-      locationInstructions +
-      (deliveryCost > 0 ? '\n\nNote: Les frais de livraison peuvent etre negocies selon la distance.\n' : '') +
-      '\n\nMerci de confirmer la disponibilite et les details de cette commande.';
-    
-    const encodedMessage = encodeURIComponent(cleanMessage);
-    const whatsappUrl = `https://wa.me/${phone.replace('+', '')}?text=${encodedMessage}`;
-    
-    console.log('Message WhatsApp:', cleanMessage);
-    console.log('URL WhatsApp:', whatsappUrl);
-    
-    window.open(whatsappUrl, '_blank');
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    window.open(`https://wa.me/${phone.replace('+', '')}?text=${encodedMessage}`, '_blank');
     
     setShowWhatsAppModal(false);
     
@@ -1429,7 +1348,7 @@ const PressingDetailPage: React.FC = () => {
               
               {/* Résumé de la commande */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Résumé de votre commande
                 </h4>
