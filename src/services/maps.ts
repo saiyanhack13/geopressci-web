@@ -37,7 +37,7 @@ export const getRoute = async (
     console.log('Fetching route from:', origin, 'to:', destination, 'mode:', mode);
     
     const response = await axios.get(
-      `http://localhost:5002/api/v1/maps/directions`,
+      `https://geopressci-akcdaadk.b4a.run/api/v1/maps/directions`,
       {
         params: {
           origin: `${origin.lat},${origin.lng}`,
