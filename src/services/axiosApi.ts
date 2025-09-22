@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Configuration de base pour l'API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://geopressci-akcdaadk.b4a.run/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://geopressci-f3r7g97m.b4a.run/api/v1';
 
 // Création de l'instance Axios
 const axiosApi: AxiosInstance = axios.create({
