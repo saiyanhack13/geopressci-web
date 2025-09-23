@@ -165,7 +165,7 @@ npx serve -s build
 
 ```bash
 # Lighthouse PWA audit
-npx lighthouse https://geopressci.netlify.app --view
+npx lighthouse https://geopressci.com --view
 
 # PWA Builder validation
 https://www.pwabuilder.com/

@@ -4,8 +4,8 @@
 
 Le frontend GeoPressCI est maintenant configuré pour se connecter automatiquement au bon backend selon l'environnement :
 
-- **Développement local** : `https://geopressci-akcdaadk.b4a.run//api/v1`
-- **Production** : `https://geopressci-akcdaadk.b4a.run//api/v1`
+- **Développement local** : `https://geopressci-b55css5d.b4a.run//api/v1`
+- **Production** : `https://geopressci-b55css5d.b4a.run//api/v1`
 
 ## Fonctionnalités
 
@@ -83,8 +83,8 @@ Créez un fichier `.env.local` (ou `.env`) avec :
 
 ```bash
 # URLs des APIs (optionnel, les valeurs par défaut sont définies)
-REACT_APP_API_URL_DEV=https://geopressci-akcdaadk.b4a.run//api/v1
-#REACT_APP_API_URL_PROD=https://geopressci-akcdaadk.b4a.run//api/v1
+REACT_APP_API_URL_DEV=https://geopressci-b55css5d.b4a.run//api/v1
+#REACT_APP_API_URL_PROD=https://geopressci-b55css5d.b4a.run//api/v1
 
 # Configuration de debug
 REACT_APP_DEBUG_API=true
@@ -93,13 +93,13 @@ REACT_APP_DEBUG_API=true
 ## Logique de Connexion
 
 ### En Développement
-1. Teste d'abord `https://geopressci-akcdaadk.b4a.run//api/v1`
+1. Teste d'abord `https://geopressci-b55css5d.b4a.run//api/v1`
 2. Si disponible → utilise le backend local
 3. Si non disponible → bascule vers le backend de production
 4. Affiche des messages de debug dans la console
 
 ### En Production
-1. Utilise directement `https://geopressci-akcdaadk.b4a.run//api/v1`
+1. Utilise directement `https://geopressci-b55css5d.b4a.run//api/v1`
 2. Pas de test de connexion préalable
 3. Timeout plus long pour les connexions réseau
 

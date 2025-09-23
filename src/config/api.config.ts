@@ -8,10 +8,10 @@ export interface ApiConfig {
 
 // URLs des différents environnements
 const API_URLS = {
-  development: process.env.REACT_APP_API_URL_DEV || 'https://geopressci-akcdaadk.b4a.run/api/v1',
-  production: process.env.REACT_APP_API_URL_PROD || 'https://geopressci-akcdaadk.b4a.run//api/v1',
+  development: process.env.REACT_APP_API_URL_DEV || 'https://geopressci-b55css5d.b4a.run/api/v1',
+  production: process.env.REACT_APP_API_URL_PROD || 'https://geopressci-b55css5d.b4a.run//api/v1',
   // Fallback si le backend local n'est pas disponible
-  fallback: process.env.REACT_APP_API_URL_PROD || 'https://geopressci-akcdaadk.b4a.run//api/v1'
+  fallback: process.env.REACT_APP_API_URL_PROD || 'https://geopressci-b55css5d.b4a.run//api/v1'
 } as const;
 
 // Détecte l'environnement automatiquement

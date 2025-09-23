@@ -115,19 +115,54 @@ const Textarea: React.FC<{
 interface InfoTabProps {
   formData: PressingInfo;
   setFormData: React.Dispatch<React.SetStateAction<PressingInfo>>;
+  onSave?: (data: PressingInfo) => void;
   isLoading: boolean;
 }
 
-const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) => {
+const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, onSave, isLoading }) => {
+  const [editedData, setEditedData] = useState<PressingInfo>(formData);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Synchroniser les données éditées avec les données reçues
+  useEffect(() => {
+    setEditedData(formData);
+    setHasChanges(false);
+  }, [formData]);
+
   const handleInputChange = (field: keyof PressingInfo, value: any) => {
-    setFormData((prev: PressingInfo) => ({ ...prev, [field]: value }));
+    setEditedData((prev: PressingInfo) => ({ ...prev, [field]: value }));
+    setHasChanges(true);
   };
 
-  const handleAddressChange = (field: keyof PressingInfo['address'], value: any) => {
-    setFormData((prev: PressingInfo) => ({
+  const handleAddressChange = (newAddress: PressingInfo['address']) => {
+    setEditedData((prev: PressingInfo) => ({
       ...prev,
-      address: { ...prev.address, [field]: value }
+      address: newAddress
     }));
+    setHasChanges(true);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      setFormData(editedData);
+      if (onSave) {
+        await onSave(editedData);
+      }
+      setHasChanges(false);
+      toast.success('Informations mises à jour avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedData(formData);
+    setHasChanges(false);
+    toast('Modifications annulées', { icon: '↩️' });
   };
 
   if (isLoading) {
@@ -190,7 +225,7 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
               <input
                 id="business-name"
                 type="text"
-                value={formData.businessName}
+                value={editedData.businessName}
                 onChange={(e) => handleInputChange('businessName', e.target.value)}
                 placeholder="Mon Pressing"
                 required
@@ -209,7 +244,7 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
               <input
                 id="phone"
                 type="tel"
-                value={formData.phone}
+                value={editedData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+225 XX XX XX XX"
                 required
@@ -228,7 +263,7 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
               <input
                 id="email"
                 type="email"
-                value={formData.email}
+                value={editedData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="contact@monpressing.ci"
                 required
@@ -247,7 +282,7 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
               <input
                 id="website"
                 type="url"
-                value={formData.website || ''}
+                value={editedData.website || ''}
                 onChange={(e) => handleInputChange('website', e.target.value)}
                 placeholder="https://monpressing.ci"
                 className="w-full min-h-[44px] px-4 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -265,7 +300,7 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
             </label>
             <textarea
               id="description"
-              value={formData.description}
+              value={editedData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Décrivez votre pressing, vos services et ce qui vous rend unique. Cette description apparaîtra sur votre profil public..."
               rows={4}
@@ -292,17 +327,66 @@ const InfoTab: React.FC<InfoTabProps> = ({ formData, setFormData, isLoading }) =
           </div>
           
           <AddressLocationManager
-            address={formData.address}
-            onAddressChange={(newAddress) => {
-              setFormData(prev => ({
-                ...prev,
-                address: newAddress
-              }));
+            address={editedData.address}
+            onAddressChange={handleAddressChange}
+            onSaveAddress={(newAddress) => {
+              // La sauvegarde sera gérée par le bouton principal
+              handleAddressChange(newAddress);
             }}
             isLoading={isLoading}
           />
         </div>
       </div>
+      
+      {/* Boutons de sauvegarde/annulation */}
+      {hasChanges && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 sm:p-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Info className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    Modifications non sauvegardées
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Vous avez des modifications en attente
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleCancel}
+                className="flex-1 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Annuler les modifications
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Sauvegarder les informations
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1136,7 +1220,14 @@ export const ProfileSettingsPage = () => {
             >
               <InfoTab 
                 formData={formData} 
-                setFormData={setFormData} 
+                setFormData={setFormData}
+                onSave={async (data) => {
+                  try {
+                    await updateProfile(data).unwrap();
+                  } catch (error) {
+                    throw error;
+                  }
+                }}
                 isLoading={isLoading} 
               />
             </section>

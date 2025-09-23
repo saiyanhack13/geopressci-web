@@ -35,7 +35,7 @@ This is the frontend application for Geopressci, built with React, TypeScript, a
    # or
    yarn start
    ```
-   Open [https://geopressci.netlify.app](https://geopressci.netlify.app) to view it in your browser.
+   Open [https://geopressci.com](https://geopressci.com) to view it in your browser.
 
 ## Available Scripts
 
