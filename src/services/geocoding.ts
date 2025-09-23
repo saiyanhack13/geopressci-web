@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://geopressci-f3r7g97m.b4a.run/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://geopressci-b55css5d.b4a.run/api';
 
 export interface GeoCoordinates {
   lat: number;
