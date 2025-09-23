@@ -4,14 +4,25 @@ FROM node:18-alpine AS builder
 # Définir le répertoire de travail
 WORKDIR /app
 
+# Nettoyer le cache npm
+RUN npm cache clean --force
+
 # Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm install
+# Installation initiale pour vérification
+RUN npm install --cache-min 9999999
+
+# Nettoyage du cache après la première installation
+RUN rm -rf ~/.npm
 
 # Copier le reste des fichiers
 COPY . .
+
+# Nettoyer à nouveau le cache avant la construction finale
+RUN npm cache clean --force && \
+    npm install --prefer-offline && \
+    npm dedupe
 
 # Construire l'application
 RUN npm run build
